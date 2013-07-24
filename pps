@@ -1,116 +1,20 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
 
-use File::Temp qw(tempdir);
-use IPC::Run3;
-use File::Slurp qw(write_file);
-use DateTime;
+use FindBin qw($Bin);
+use lib "$Bin/lib";
+use lib "$Bin/local/lib/perl5";
 
-my $tag = DateTime->now()->strftime('%F-%H-%M-%S');
-#my $tag = '2013-07-20';
-my $appname = 'testapp';
-my $just_code = 1;
+use Log::Log4perl qw(:easy);
 
-my $quiet = 0;
-my $verbose = 1;
+Log::Log4perl->init( \ <<'EOT');
+  log4perl.category = DEBUG, Screen
+  log4perl.appender.Screen = Log::Log4perl::Appender::ScreenColoredLevels
+  log4perl.appender.Screen.layout = Log::Log4perl::Layout::PatternLayout
+  log4perl.appender.Screen.layout.ConversionPattern = %p %m%n
+EOT
 
-my $app_build_dir = tempdir();
-
-INFO("app build dir: $app_build_dir");
-
-my @create_tar_cmd = (qw(git archive --format tar --prefix app/ -o), "$app_build_dir/app.tar", qw(master));
-
-run3 \@create_tar_cmd;
-
-if ($just_code) {
-write_file("$app_build_dir/Dockerfile", <<DOCKER);
-from    minipaas/$appname:build-2013-07-20-22-35-12
-run     rm -rf /app
-add     app.tar /
-expose  22 8080
-cmd     ["/usr/bin/supervisord", "-n"]
-DOCKER
-}
-else {
-write_file("$app_build_dir/Dockerfile", <<DOCKER);
-from    minipaas/base:appbase
-add     app.tar /
-run     bash -c "cd /app; /app/.build 2>&1 | tee /build.log"
-expose  22 8080
-cmd     ["/usr/bin/supervisord", "-n"]
-DOCKER
-}
-
-chdir $app_build_dir;
-
-my @build_app_cmd = (qw(docker build -t), "minipaas/$appname:build-$tag", qw(.));
-
-run3 \@build_app_cmd;
-
-my $rc = $? >> 8;
-
-if ($rc) {
-    WARN("app failed to build, please try again");
-    exit;
-}
-
-INFO("Application built successfully");
-
-my $app_run_build_dir = tempdir();
-INFO("run build dir: $app_run_build_dir");
-
-write_file("$app_run_build_dir/Dockerfile", <<DOCKER2);
-from    minipaas/$appname:build-$tag
-add     minipaas_run /minipaas_run
-run     chmod +x /minipaas_run
-expose  22 8080
-cmd     ["/usr/bin/supervisord", "-n"]
-DOCKER2
-
-write_file("$app_run_build_dir/minipaas_run", <<DOCKER3);
-#!/bin/bash
-
-cd /app
-
-./.run
-DOCKER3
-
-chdir $app_run_build_dir;
-
-my @build_run_cmd = (qw(docker build -t), "minipaas/$appname:run-$tag", qw(.));
-
-run3 \@build_run_cmd;
-
-my $rc2 = $? >> 8;
-
-if ($rc2) {
-    WARN("run failed to build, please try again");
-    exit;
-}
-
-# now start it up (-:
-
-my @run_cmd = (qw(docker run -d), "minipaas/$appname:run-$tag");
-
-run3 \@run_cmd;
-
-
-# a few log4perl-alikes
-sub ERROR {
-    printf "ERROR: %s\n", shift;
-}
-
-sub WARN {
-    printf "WARN: %s\n", shift;
-}
-
-sub INFO {
-    printf "INFO: %s\n", shift if !$quiet;
-}
-
-sub DEBUG {
-    printf "DEBUG: %s\n", shift if $verbose;
-}
-
+use App::PocketPaas;
+App::PocketPaas->run;
