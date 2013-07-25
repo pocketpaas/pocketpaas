@@ -8,3 +8,4 @@ requires 'App::Cmd', 0.320;
 requires 'Log::Log4perl', 1.41;
 requires 'LWP::UserAgent', 0;
 requires 'JSON', 0;
+requires 'Perl::Tidy', 0;

@@ -4,6 +4,7 @@ use Cwd;
 use IPC::Run3;
 use LWP::UserAgent;
 use JSON;
+use Log::Log4perl qw(:easy);
 
 sub build {
     my ( $class, $directory, $tag ) = @_;
@@ -27,22 +28,66 @@ sub build {
     return !$rc;
 }
 
+sub wait {
+    my ( $class, $container ) = @_;
+
+    run3 [ qw(docker wait), $container ], \undef, \undef, \undef;
+
+    my $rc = $? >> 8;
+
+    return !$rc;
+}
+
+sub commit {
+    my $class = shift;
+    my @args  = @_;
+
+    run3 [ qw(docker commit), @args ];
+}
+
 sub run {
     my ( $class, $image, $options ) = @_;
 
-    my @flags = ();
-
-    push @flags, '-d' if $options->{daemon};
-
-    my @run_cmd = ( qw(docker run), @flags, $image );
-
-    run3 \@run_cmd;
-
-    if ($rc) {
-        WARN("run failed for image $image");
+    my @command;
+    if ( $options->{command} ) {
+        push @command, $options->{command};
     }
 
-    return !$rc;
+    my @args;
+    if ( $options->{volumes} ) {
+        push @args, '-v', $_ for @{ $options->{volumes} };
+    }
+
+    if ( $options->{daemon} ) {
+
+        my $output;
+        run3 [ qw(docker run -d), @args, $image, @command ], undef, \$output,
+            \$output;
+
+        chomp $output;
+
+        DEBUG("run output: $output");
+
+        if ( length($output) == 12 ) {
+            return $output;
+        }
+        else {
+            WARN("run failed for image $image");
+        }
+
+        return 0;
+    }
+    else {
+        run3 [ qw(docker run), $image, @command ];
+    }
+}
+
+sub attach {
+    my ( $class, $container ) = @_;
+
+    my @run_cmd = ( qw(docker attach), $container );
+
+    run3 \@run_cmd;
 }
 
 sub stop {

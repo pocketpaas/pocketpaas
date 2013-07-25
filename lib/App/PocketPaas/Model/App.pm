@@ -71,7 +71,7 @@ sub load {
 
         if ( $docker_image->{Repository} eq "minipaas/$name" ) {
             my ( $type, $tag )
-                = $docker_image->{Tag} =~ m{^(build|run)-([\d-]+)$};
+                = $docker_image->{Tag} =~ m{^(build|run|temp)-([\d-]+)$};
             $potential_tags->{$tag}->{$type} = 1;
         }
     }

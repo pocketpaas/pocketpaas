@@ -16,6 +16,7 @@ use File::Slurp qw(write_file);
 use File::Temp qw(tempdir);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
+use File::Path qw(make_path);
 
 sub opt_spec {
     return (
@@ -25,6 +26,8 @@ sub opt_spec {
         [   "stage|s",
             "run new code in a new container without replacing production"
         ],
+        [ "no-cache",    "build without using a cache" ],
+        [ "reset-cache", "reset the build cache" ],
     );
 }
 
@@ -51,18 +54,59 @@ sub execute {
     my $tag = DateTime->now()->strftime('%F-%H-%M-%S');
 
     if (App::PocketPaas::Docker->build(
-            $app_build_dir, "minipaas/$app_name:build-$tag"
+            $app_build_dir, "minipaas/$app_name:temp-$tag"
         )
         )
     {
         INFO("Application built successfully");
     }
     else {
+        # TODO: Remove temp tag
         return;
     }
 
     my $app_run_build_dir = tempdir();
     DEBUG("Run build dir: $app_run_build_dir");
+
+    my %cache_volume_opts;
+    print STDERR Dumper($opt);
+    use Data::Dumper;
+    if ( !$opt->{'no_cache'} ) {
+        my $cache_dir = "$ENV{HOME}/.pocketpaas/cache/$app_name";
+        if ( $opt->{'reset_cache'} ) {
+
+            # TODO: remove cache path, might be root owned
+        }
+        make_path($cache_dir);
+
+        %cache_volume_opts = ( volumes => ["$cache_dir:/cache"] );
+    }
+
+    INFO("Building application");
+    if (my $build_container_id = App::PocketPaas::Docker->run(
+            "minipaas/$app_name:temp-$tag",
+            {   daemon  => 1,
+                command => '/build/builder',
+                %cache_volume_opts
+            }
+        )
+        )
+    {
+        INFO("App build container: $build_container_id");
+        App::PocketPaas::Docker->attach($build_container_id);
+
+        if ( App::PocketPaas::Docker->wait($build_container_id) ) {
+            App::PocketPaas::Docker->commit( $build_container_id,
+                "minipaas/$app_name", "build-$tag" );
+        }
+        else {
+            # TODO: clean up images
+            FATAL("Application build failed");
+        }
+    }
+    else {
+        return;
+    }
 
     prepare_run_build( $app_run_build_dir, $app_name, $tag );
 
@@ -114,7 +158,6 @@ sub prepare_app_build {
     write_file( "$dest_dir/Dockerfile", <<DOCKER);
 from    progrium/buildstep
 add     app.tar /
-run     /build/builder
 DOCKER
 }
 
