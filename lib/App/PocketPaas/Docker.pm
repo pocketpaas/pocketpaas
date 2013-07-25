@@ -45,9 +45,43 @@ sub run {
     return !$rc;
 }
 
+sub stop {
+    my ( $class, $container_id ) = @_;
+
+    my @run_cmd = ( qw(docker stop), $container_id );
+
+    run3 \@run_cmd;
+
+    if ($rc) {
+        WARN("stop failed for container $container_id");
+    }
+
+    return !$rc;
+}
+
+sub rm {
+    my ( $class, $container_id ) = @_;
+
+    my @run_cmd = ( qw(docker rm), $container_id );
+
+    run3 \@run_cmd;
+
+    if ($rc) {
+        WARN("rm failed for container $container_id");
+    }
+
+    return !$rc;
+}
+
 sub containers {
+    my ( $class, $args ) = @_;
+
+    return $class->get( '/containers/json' . _args($args) );
+}
+
+sub images {
     my $class = shift;
-    return $class->get('/containers/json');
+    return $class->get('/images/json');
 }
 
 sub get {
@@ -60,6 +94,14 @@ sub get {
 
     if ( $response->is_success ) {
         return decode_json( $response->decoded_content );
+    }
+}
+
+sub _args {
+    my $args = shift || return '';
+
+    if ( scalar keys %$args ) {
+        return '?' . join( '&', map {"$_=$args->{$_}"} keys %$args );
     }
 }
 

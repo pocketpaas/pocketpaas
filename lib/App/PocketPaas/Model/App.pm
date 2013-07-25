@@ -14,63 +14,82 @@ has containers => ( is => 'ro' );
 
 has images => ( is => 'ro' );
 
-sub load_all {
-    my ($class) = @_;
-
-    my @apps;
-
-    my $apps_dir = App::PocketPaas->config->{brain} . '/apps';
-    App::PocketPaas::Util->walk_dir(
-        $apps_dir,
-        sub {
-            my $file = shift;
-            my $app = $class->_load_app_from_file($file);
-
-        }
-    );
-
-    return \@apps;
-}
-
 sub load {
-    my ( $class, $name ) = @_;
+    my ( $class, $name, $docker_containers, $docker_images ) = @_;
 
-    return $class->_load_app_from_file(App::PocketPaas->config->{brain} . '/apps' . '/' . $name);
-}
+    my ( @images, @containers );
 
-sub _load_app_from_file {
-    my ( $class, $file ) = @_;
-
-    if (!-e $file) {
-        return;
+# {
+#   'Id' => '8a79577a855d42713158aaaeff29552b765e07748ade5e5172d8a2814e614448',
+#   'Status' => 'Up 13 minutes',
+#   'Image' => 'minipaas/testapp:run-2013-07-24-03-28-15',
+#   'Ports' => '49154->5000',
+#   'Command' => '/start web',
+#   'SizeRw' => 0,
+#   'Created' => 1374714125,
+#   'SizeRootFs' => 0
+# }
+    foreach my $docker_container (@$docker_containers) {
+        if ( $docker_container->{Image} =~ m{^minipaas/$name:run-([\d-]+)$} )
+        {
+            my $tag           = $1;
+            my $docker_status = $docker_container->{Status};
+            my $status;
+            if ( $docker_status =~ /^Up/ ) {
+                $status = 'running';
+            }
+            elsif ( $docker_status =~ /^Exit/ ) {
+                $status = 'stopped';
+            }
+            elsif ( $docker_status =~ /^Ghost/ ) {
+                $status = 'ghost';
+            }
+            else {
+                $status = 'unknown';
+            }
+            push @containers,
+                App::PocketPaas::Model::Container->new(
+                {   docker_id => substr( $docker_container->{Id}, 0, 12 ),
+                    status    => $status,
+                    tag       => $tag
+                }
+                );
+        }
     }
 
-    my $app_data = from_json(read_file($file));
+# {
+#   'Size' => 12288,
+#   'Id' => '45d1d2933f039f2c7f647bb618ecaf612dc32d2a1ddd10a4ffafdaf6dd6e03a4',
+#   'VirtualSize' => 679359403,
+#   'Created' => 1374628038,
+#   'Tag' => 'build-2013-07-24-00-58-11',
+#   'Repository' => 'minipaas/testapp'
+# },
 
-    my $containers = [map {App::PocketPaas::Model::Container->new($_)} @{delete $app_data->{containers}}];
-    my $images = [map {App::PocketPaas::Model::Image->new($_)} @{$app_data->{images}}];
-    my $app = App::PocketPaas::Model::App->new({name => $app_data->{name}, containers => $containers, images => $images});
+    my $potential_tags = {};
+    foreach my $docker_image (@$docker_images) {
 
-    return $app;
-}
-
-sub save {
-    my ( $class, $app ) = @_;
-
-    write_file(
-        App::PocketPaas->config->{brain} . '/apps' . '/'
-            . $app->name(),
-        to_json( $app, { convert_blessed => 1, pretty => 1 } )
+        if ( $docker_image->{Repository} eq "minipaas/$name" ) {
+            my ( $type, $tag )
+                = $docker_image->{Tag} =~ m{^(build|run)-([\d-]+)$};
+            $potential_tags->{$tag}->{$type} = 1;
+        }
+    }
+    foreach my $potential_tag ( keys %$potential_tags ) {
+        if (   $potential_tags->{$potential_tag}->{build}
+            && $potential_tags->{$potential_tag}->{run} )
+        {
+            push @images,
+                App::PocketPaas::Model::Image->new(
+                { tag => $potential_tag } );
+        }
+    }
+    return App::PocketPaas::Model::App->new(
+        {   name       => $name,
+            containers => \@containers,
+            images     => [ sort { $b->{tag} cmp $a->{tag} } @images ],
+        }
     );
-}
-
-sub TO_JSON {
-    my $self = shift;
-    return {
-        name       => $self->name(),
-        containers => $self->containers(),
-        images     => $self->images(),
-    };
 }
 
 1;

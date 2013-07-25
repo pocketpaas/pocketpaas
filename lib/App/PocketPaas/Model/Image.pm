@@ -12,9 +12,4 @@ sub run_tag {
     return 'run-' . shift->tag();
 }
 
-sub TO_JSON {
-    my $self = shift;
-    return { tag => $self->tag(), };
-}
-
 1;

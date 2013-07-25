@@ -19,7 +19,7 @@ use Log::Log4perl qw(:easy);
 
 sub opt_spec {
     return (
-        [   "name|n",
+        [   "name|n=s",
             "application name, defaults to the directory name or read from pps.yml"
         ],
         [   "stage|s",
@@ -31,36 +31,13 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    #my $apps = App::PocketPaas::Model::App->load_all();
-    #print STDERR Dumper($apps); use Data::Dumper;
-
-    #my $app = App::PocketPaas::Model::App->new(
-        #name   => 'testapp',
-        #containers => [
-            #App::PocketPaas::Model::Container->new(
-                #{ docker_id => '834246c6aff1', status => 'running' }
-            #)
-        #],
-        #images => [
-            #App::PocketPaas::Model::Image->new(
-                #{ tag => '2013-07-24-00-58-11' }
-            #),
-            #App::PocketPaas::Model::Image->new(
-                #{ tag => '2013-07-24-03-28-15' }
-            #),
-        #]
-    #);
-    #print STDERR Dumper($app); use Data::Dumper;
-    #App::PocketPaas::Model::App->save($app);
-
-    my $tag          = DateTime->now()->strftime('%F-%H-%M-%S');
-    my $previous_tag = '2013-07-24-03-21-08';
-
     my $app_name = $opt->{name} || 'testapp';
 
-    my $app = App::PocketPaas::Model::App->load($app_name);
-    print STDERR Dumper($app); use Data::Dumper;
-    exit;
+    my $app = App::PocketPaas::Model::App->load(
+        $app_name,
+        App::PocketPaas::Docker->containers( { all => 1 } ),
+        App::PocketPaas::Docker->images()
+    );
 
     INFO("Pushing $app_name");
 
@@ -69,7 +46,9 @@ sub execute {
     DEBUG("App build dir: $app_build_dir");
 
     generate_app_tarball($app_build_dir);
-    prepare_app_build( $app_build_dir, $app_name, $previous_tag );
+    prepare_app_build( $app_build_dir, $app_name );
+
+    my $tag = DateTime->now()->strftime('%F-%H-%M-%S');
 
     if (App::PocketPaas::Docker->build(
             $app_build_dir, "minipaas/$app_name:build-$tag"
@@ -104,6 +83,16 @@ sub execute {
     {
         return;
     }
+
+    INFO("TODO: putting new application into hipache proxy");
+
+    INFO("Stopping previous containers");
+    foreach my $container ( @{ $app->containers() } ) {
+        if ( $container->status() eq 'running' ) {
+            App::PocketPaas::Docker->stop( $container->docker_id() );
+        }
+        App::PocketPaas::Docker->rm( $container->docker_id() );
+    }
 }
 
 sub generate_app_tarball {
@@ -120,7 +109,7 @@ sub generate_app_tarball {
 }
 
 sub prepare_app_build {
-    my ( $dest_dir, $app_name, $previous_tag ) = @_;
+    my ( $dest_dir, $app_name ) = @_;
 
     write_file( "$dest_dir/Dockerfile", <<DOCKER);
 from    progrium/buildstep
