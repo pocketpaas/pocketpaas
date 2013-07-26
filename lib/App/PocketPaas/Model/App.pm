@@ -1,11 +1,5 @@
 package App::PocketPaas::Model::App;
 
-use App::PocketPaas::Docker;
-use App::PocketPaas::Util;
-
-use JSON;
-use File::Slurp qw(read_file write_file);
-
 use Moo;
 
 has name => ( is => 'ro' );
