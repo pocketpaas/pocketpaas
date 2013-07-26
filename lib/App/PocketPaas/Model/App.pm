@@ -78,12 +78,47 @@ sub load {
                 { tag => $potential_tag } );
         }
     }
+
+    if ( !@containers && !@images ) {
+        return;
+    }
+
     return App::PocketPaas::Model::App->new(
         {   name       => $name,
             containers => \@containers,
             images     => [ sort { $b->{tag} cmp $a->{tag} } @images ],
         }
     );
+}
+
+sub load_names {
+    my ( $class, $docker_containers, $docker_images ) = @_;
+
+    my $apps = {};
+    foreach my $docker_container (@$docker_containers) {
+        if ( my ($app_name)
+            = $docker_container->{Image} =~ m{^minipaas/([^:]+):run-[\d-]+$} )
+        {
+            $apps->{$app_name}++;
+        }
+    }
+    foreach my $docker_image (@$docker_images) {
+        if ( my ($app_name)
+            = $docker_image->{Repository} =~ m{minipaas/([^:]+)} )
+        {
+            $apps->{$app_name}++;
+        }
+    }
+
+    return [ keys %$apps ];
+}
+
+sub load_all {
+    my ( $class, $docker_containers, $docker_images ) = @_;
+
+    my $app_names = $class->load_names( $docker_containers, $docker_images );
+    return [ map { $class->load( $_, $docker_containers, $docker_images ) }
+            @$app_names ];
 }
 
 1;
