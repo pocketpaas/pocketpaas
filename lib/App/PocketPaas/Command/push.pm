@@ -130,12 +130,15 @@ sub execute {
 
     INFO("TODO: putting new application into hipache proxy");
 
-    INFO("Stopping previous containers");
-    foreach my $container ( @{ $app->containers() } ) {
-        if ( $container->status() eq 'running' ) {
-            App::PocketPaas::Docker->stop( $container->docker_id() );
+    # if app was previously running
+    if ($app) {
+        INFO("Stopping previous containers");
+        foreach my $container ( @{ $app->containers() } ) {
+            if ( $container->status() eq 'running' ) {
+                App::PocketPaas::Docker->stop( $container->docker_id() );
+            }
+            App::PocketPaas::Docker->rm( $container->docker_id() );
         }
-        App::PocketPaas::Docker->rm( $container->docker_id() );
     }
 }
 
