@@ -118,6 +118,20 @@ sub rm {
     return !$rc;
 }
 
+sub rmi {
+    my ( $class, $image ) = @_;
+
+    my @run_cmd = ( qw(docker rmi), $image );
+
+    run3 \@run_cmd;
+
+    if ($rc) {
+        WARN("rmi failed for container $image");
+    }
+
+    return !$rc;
+}
+
 sub containers {
     my ( $class, $args ) = @_;
 

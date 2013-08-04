@@ -8,10 +8,8 @@ use warnings;
 
 use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
-use App::PocketPaas::Model::Image;
-use App::PocketPaas::Model::Container;
+use App::PocketPaas::Util;
 
-use DateTime;
 use File::Slurp qw(write_file);
 use File::Temp qw(tempdir);
 use IPC::Run3;
@@ -51,7 +49,7 @@ sub execute {
     generate_app_tarball($app_build_dir);
     prepare_app_build( $app_build_dir, $app_name );
 
-    my $tag = DateTime->now()->strftime('%F-%H-%M-%S');
+    my $tag = App::PocketPaas::Util::next_tag($app);
 
     if (App::PocketPaas::Docker->build(
             $app_build_dir, "minipaas/$app_name:temp-$tag"
@@ -61,7 +59,7 @@ sub execute {
         INFO("Application built successfully");
     }
     else {
-        # TODO: Remove temp tag
+        App::PocketPaas::Docker->rm("minipaas/$app_name:temp-$tag");
         return;
     }
 

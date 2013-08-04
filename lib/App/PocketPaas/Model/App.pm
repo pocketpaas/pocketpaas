@@ -1,5 +1,8 @@
 package App::PocketPaas::Model::App;
 
+use App::PocketPaas::Model::Image;
+use App::PocketPaas::Model::Container;
+
 use Moo;
 
 has name => ( is => 'ro' );
