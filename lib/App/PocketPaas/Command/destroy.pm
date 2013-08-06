@@ -52,9 +52,9 @@ sub execute {
 
         foreach my $image ( @{ $app->images() } ) {
             App::PocketPaas::Docker->rmi(
-                "minipaas/$app_name:" . $image->build_tag() );
+                "pocketpaas/$app_name:" . $image->build_tag() );
             App::PocketPaas::Docker->rmi(
-                "minipaas/$app_name:" . $image->run_tag() );
+                "pocketpaas/$app_name:" . $image->run_tag() );
         }
     }
     else {

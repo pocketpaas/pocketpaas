@@ -53,14 +53,14 @@ sub execute {
     my $tag = App::PocketPaas::Util::next_tag($app);
 
     if (App::PocketPaas::Docker->build(
-            $app_build_dir, "minipaas/$app_name:temp-$tag"
+            $app_build_dir, "pocketpaas/$app_name:temp-$tag"
         )
         )
     {
         INFO("Application built successfully");
     }
     else {
-        App::PocketPaas::Docker->rmi("minipaas/$app_name:temp-$tag");
+        App::PocketPaas::Docker->rmi("pocketpaas/$app_name:temp-$tag");
         return;
     }
 
@@ -83,7 +83,7 @@ sub execute {
 
     INFO("Building application");
     if (my $build_container_id = App::PocketPaas::Docker->run(
-            "minipaas/$app_name:temp-$tag",
+            "pocketpaas/$app_name:temp-$tag",
             {   daemon  => 1,
                 command => '/build/builder',
                 %cache_volume_opts
@@ -96,7 +96,7 @@ sub execute {
 
         if ( App::PocketPaas::Docker->wait($build_container_id) ) {
             App::PocketPaas::Docker->commit( $build_container_id,
-                "minipaas/$app_name", "build-$tag" );
+                "pocketpaas/$app_name", "build-$tag" );
         }
         else {
             # TODO: clean up images
@@ -110,7 +110,7 @@ sub execute {
     prepare_run_build( $app_run_build_dir, $app_name, $tag );
 
     if (!App::PocketPaas::Docker->build(
-            $app_run_build_dir, "minipaas/$app_name:run-$tag"
+            $app_run_build_dir, "pocketpaas/$app_name:run-$tag"
         )
         )
     {
@@ -120,7 +120,8 @@ sub execute {
     # now start it up (-:
     INFO("Starting application");
     if (!App::PocketPaas::Docker->run(
-            "minipaas/$app_name:run-$tag", { daemon => 1 }
+            "pocketpaas/$app_name:run-$tag",
+            { daemon => 1 }
         )
         )
     {
@@ -140,7 +141,7 @@ sub execute {
         }
     }
 
-    App::PocketPaas::Docker->rmi("minipaas/$app_name:temp-$tag");
+    App::PocketPaas::Docker->rmi("pocketpaas/$app_name:temp-$tag");
 }
 
 sub generate_app_tarball {
@@ -169,7 +170,7 @@ sub prepare_run_build {
     my ( $app_run_build_dir, $app_name, $tag ) = @_;
 
     write_file( "$app_run_build_dir/Dockerfile", <<DOCKER2);
-from    minipaas/$app_name:build-$tag
+from    pocketpaas/$app_name:build-$tag
 env     PORT 5000
 expose  5000
 cmd     ["/start", "web"]

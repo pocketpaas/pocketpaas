@@ -19,7 +19,7 @@ sub load {
 # {
 #   'Id' => '8a79577a855d42713158aaaeff29552b765e07748ade5e5172d8a2814e614448',
 #   'Status' => 'Up 13 minutes',
-#   'Image' => 'minipaas/testapp:run-2013-07-24-03-28-15',
+#   'Image' => 'pocketpaas/testapp:run-2013-07-24-03-28-15',
 #   'Ports' => '49154->5000',
 #   'Command' => '/start web',
 #   'SizeRw' => 0,
@@ -27,7 +27,7 @@ sub load {
 #   'SizeRootFs' => 0
 # }
     foreach my $docker_container (@$docker_containers) {
-        if ( $docker_container->{Image} =~ m{^minipaas/$name:run-([\d-]+)$} )
+        if ($docker_container->{Image} =~ m{^pocketpaas/$name:run-([\d-]+)$} )
         {
             my $tag           = $1;
             my $docker_status = $docker_container->{Status};
@@ -60,13 +60,13 @@ sub load {
 #   'VirtualSize' => 679359403,
 #   'Created' => 1374628038,
 #   'Tag' => 'build-2013-07-24-00-58-11',
-#   'Repository' => 'minipaas/testapp'
+#   'Repository' => 'pocketpaas/testapp'
 # },
 
     my $potential_tags = {};
     foreach my $docker_image (@$docker_images) {
 
-        if ( $docker_image->{Repository} eq "minipaas/$name" ) {
+        if ( $docker_image->{Repository} eq "pocketpaas/$name" ) {
             my ( $type, $tag )
                 = $docker_image->{Tag} =~ m{^(build|run|temp)-([\d-]+)$};
             $potential_tags->{$tag}->{$type} = 1;
@@ -100,14 +100,15 @@ sub load_names {
     my $apps = {};
     foreach my $docker_container (@$docker_containers) {
         if ( my ($app_name)
-            = $docker_container->{Image} =~ m{^minipaas/([^:]+):run-[\d-]+$} )
+            = $docker_container->{Image}
+            =~ m{^pocketpaas/([^:]+):run-[\d-]+$} )
         {
             $apps->{$app_name}++;
         }
     }
     foreach my $docker_image (@$docker_images) {
         if ( my ($app_name)
-            = $docker_image->{Repository} =~ m{minipaas/([^:]+)} )
+            = $docker_image->{Repository} =~ m{pocketpaas/([^:]+)} )
         {
             $apps->{$app_name}++;
         }
