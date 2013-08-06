@@ -59,7 +59,7 @@ sub execute {
         INFO("Application built successfully");
     }
     else {
-        App::PocketPaas::Docker->rm("minipaas/$app_name:temp-$tag");
+        App::PocketPaas::Docker->rmi("minipaas/$app_name:temp-$tag");
         return;
     }
 
@@ -138,6 +138,8 @@ sub execute {
             App::PocketPaas::Docker->rm( $container->docker_id() );
         }
     }
+
+    App::PocketPaas::Docker->rmi("minipaas/$app_name:temp-$tag");
 }
 
 sub generate_app_tarball {
