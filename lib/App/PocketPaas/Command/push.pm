@@ -32,7 +32,8 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $app_name = $opt->{name} || 'testapp';
+    my $app_name = $opt->{name}
+        || die "Please provide an application name with --name\n";
 
     my $app = App::PocketPaas::Model::App->load(
         $app_name,
