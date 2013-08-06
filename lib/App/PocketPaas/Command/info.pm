@@ -19,6 +19,7 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
+    # TODO: specify app name in the same way as other commands
     my $app_name = shift @$args;
 
     if ( !$app_name ) {
