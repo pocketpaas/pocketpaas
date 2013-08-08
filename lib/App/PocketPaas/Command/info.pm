@@ -13,18 +13,18 @@ use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
 
 sub opt_spec {
-    return ();
+    return (
+        [   "name|n=s",
+            "application name, defaults to the directory name or read from pps.yml"
+        ],
+    );
 }
 
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    # TODO: specify app name in the same way as other commands
-    my $app_name = shift @$args;
-
-    if ( !$app_name ) {
-        $self->usage_error("Please provide an app name");
-    }
+    my $app_name = $opt->{name}
+        || die "Please provide an application name with --name\n";
 
     my $app = App::PocketPaas::Model::App->load(
         $app_name,
