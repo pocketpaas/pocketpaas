@@ -117,6 +117,9 @@ sub execute {
         return;
     }
 
+    # TODO create run image with environment, including
+    # any services
+
     # now start it up (-:
     INFO("Starting application");
     if (!App::PocketPaas::Docker->run(
