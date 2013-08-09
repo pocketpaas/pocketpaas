@@ -7,7 +7,7 @@
 * <strike>delete application</strike>
 * clean up old application images/containers
 * service provisioning with servicepack
-* 2 or 3 more servicepacks, mongo, redis, rabbitmq, etc.
+* 2 or 3 more servicepacks, mongo, <strike>redis</strike>, rabbitmq, etc.
 * documentation for both pocketpaas and servicepack
   * reference
   * quick start
