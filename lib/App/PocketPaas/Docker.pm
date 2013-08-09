@@ -5,6 +5,9 @@ use IPC::Run3;
 use LWP::UserAgent;
 use JSON;
 use Log::Log4perl qw(:easy);
+use Readonly;
+
+Readonly my @DOCKER => qw(docker -H tcp://127.0.0.1:4243);
 
 sub build {
     my ( $class, $directory, $tag ) = @_;
@@ -13,7 +16,7 @@ sub build {
 
     chdir $directory;
 
-    my @build_app_cmd = ( qw(docker build -t), $tag, qw(.) );
+    my @build_app_cmd = ( @DOCKER, qw(build -t), $tag, qw(.) );
 
     run3 \@build_app_cmd;
 
@@ -31,7 +34,7 @@ sub build {
 sub wait {
     my ( $class, $container ) = @_;
 
-    run3 [ qw(docker wait), $container ], \undef, \undef, \undef;
+    run3 [ @DOCKER, qw(wait), $container ], \undef, \undef, \undef;
 
     my $rc = $? >> 8;
 
@@ -42,7 +45,7 @@ sub commit {
     my $class = shift;
     my @args  = @_;
 
-    run3 [ qw(docker commit), @args ];
+    run3 [ @DOCKER, qw(commit), @args ];
 }
 
 sub run {
@@ -61,7 +64,8 @@ sub run {
     if ( $options->{daemon} ) {
 
         my $output;
-        run3 [ qw(docker run -d), @args, $image, @command ], undef, \$output,
+        run3 [ @DOCKER, qw(run -d), @args, $image, @command ], undef,
+            \$output,
             \$output;
 
         chomp $output;
@@ -78,14 +82,14 @@ sub run {
         return 0;
     }
     else {
-        run3 [ qw(docker run), $image, @command ];
+        run3 [ @DOCKER, qw(run), $image, @command ];
     }
 }
 
 sub attach {
     my ( $class, $container ) = @_;
 
-    my @run_cmd = ( qw(docker attach), $container );
+    my @run_cmd = ( @DOCKER, qw(attach), $container );
 
     run3 \@run_cmd;
 }
@@ -93,7 +97,7 @@ sub attach {
 sub stop {
     my ( $class, $container_id ) = @_;
 
-    my @run_cmd = ( qw(docker stop), $container_id );
+    my @run_cmd = ( @DOCKER, qw(stop), $container_id );
 
     run3 \@run_cmd;
 
@@ -107,7 +111,7 @@ sub stop {
 sub rm {
     my ( $class, $container_id ) = @_;
 
-    my @run_cmd = ( qw(docker rm), $container_id );
+    my @run_cmd = ( @DOCKER, qw(rm), $container_id );
 
     run3 \@run_cmd;
 
@@ -121,7 +125,7 @@ sub rm {
 sub rmi {
     my ( $class, $image ) = @_;
 
-    my @run_cmd = ( qw(docker rmi), $image );
+    my @run_cmd = ( @DOCKER, qw(rmi), $image );
 
     run3 \@run_cmd;
 
