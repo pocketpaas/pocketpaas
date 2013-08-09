@@ -6,8 +6,11 @@ use LWP::UserAgent;
 use JSON;
 use Log::Log4perl qw(:easy);
 use Readonly;
+use LWP::Protocol::http::SocketUnixAlt;
 
-Readonly my @DOCKER => qw(docker -H tcp://127.0.0.1:4243);
+Readonly my @DOCKER => qw(docker);
+
+LWP::Protocol::implementor( http => 'LWP::Protocol::http::SocketUnixAlt' );
 
 sub build {
     my ( $class, $directory, $tag ) = @_;
@@ -153,7 +156,7 @@ sub get {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
 
-    my $response = $ua->get( 'http://localhost:4243/v1.3' . $uri );
+    my $response = $ua->get( 'http:var/run/docker.sock//v1.4' . $uri );
 
     if ( $response->is_success ) {
         return decode_json( $response->decoded_content );

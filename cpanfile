@@ -11,3 +11,4 @@ requires 'JSON', 0;
 requires 'Perl::Tidy', 0;
 requires 'YAML', 0;
 requires 'Readonly', 0;
+requires 'LWP::Protocol::http::SocketUnixAlt', 0;
