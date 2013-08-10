@@ -74,5 +74,11 @@ And many others.  Thank you for contributing your work so that I could contribut
 # License
 
 Copyright 2013 Nate Jones
-
 Licensed under the Apache License, Version 2.0.
+
+## Software licenses
+
+* Docker licensed under the [Apache License, Version 2.0](http://opensource.org/licenses/Apache-2.0)
+* Buildstep licensed under the [MIT License](http://opensource.org/licenses/MIT)
+* All Perl modules listed in [cpanfile](cpanfile) licensed under the [Artistic License 2.0](http://opensource.org/licenses/Artistic-2.0), except:
+  * Perl::Tidy licensed under the [GPL](http://opensource.org/licenses/gpl-license)
