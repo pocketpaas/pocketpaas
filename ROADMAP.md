@@ -1,5 +1,6 @@
 ## MVP
 
+* <strike>config yaml file</strike>
 * hipache container set up
 * push routing config into hipache
 * <strike>stop application</strike>
@@ -20,3 +21,4 @@
 * staging
 * running non-buildpack containers
 * adding arbitrary environment variables to applications
+* many more yaml file features

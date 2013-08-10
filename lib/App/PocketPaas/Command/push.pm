@@ -10,6 +10,7 @@ use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Util;
 
+use Cwd;
 use File::Slurp qw(write_file);
 use File::Temp qw(tempdir);
 use IPC::Run3;
@@ -32,7 +33,9 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $app_name = $opt->{name}
+    my $app_config = App::PocketPaas::Util->load_app_config( getcwd, $opt );
+
+    my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
     my $app = App::PocketPaas::Model::App->load(
@@ -68,8 +71,6 @@ sub execute {
     DEBUG("Run build dir: $app_run_build_dir");
 
     my %cache_volume_opts;
-    print STDERR Dumper($opt);
-    use Data::Dumper;
     if ( !$opt->{'no_cache'} ) {
         my $cache_dir = "$ENV{HOME}/.pocketpaas/cache/$app_name";
         if ( $opt->{'reset_cache'} ) {

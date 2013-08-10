@@ -7,8 +7,10 @@ use strict;
 use warnings;
 
 use App::PocketPaas::Docker;
+use App::PocketPaas::Util;
 use App::PocketPaas::Model::App;
 
+use Cwd;
 use Log::Log4perl qw(:easy);
 
 sub opt_spec {
@@ -23,8 +25,12 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $app_name = $opt->{name}
+    my $app_config = App::PocketPaas::Util->load_app_config( getcwd, $opt );
+
+    my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
+
+    # TODO check for application already running
 
     my $app = App::PocketPaas::Model::App->load(
         $app_name,

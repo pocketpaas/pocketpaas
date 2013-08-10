@@ -10,11 +10,8 @@ use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Util;
 
-use File::Slurp qw(write_file);
-use File::Temp qw(tempdir);
-use IPC::Run3;
+use Cwd;
 use Log::Log4perl qw(:easy);
-use File::Path qw(make_path);
 
 sub opt_spec {
     return (
@@ -27,7 +24,9 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $app_name = $opt->{name}
+    my $app_config = App::PocketPaas::Util->load_app_config( getcwd, $opt );
+
+    my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
     my $app = App::PocketPaas::Model::App->load(
