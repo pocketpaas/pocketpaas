@@ -3,7 +3,6 @@ requires 'DateTime', 0;
 requires 'IPC::Run3', 0;
 requires 'File::Slurp', 0;
 requires 'Moo', 1.003000;
-requires 'App::FatPacker', 0.009017;
 requires 'App::Cmd', 0.320;
 requires 'Log::Log4perl', 1.41;
 requires 'LWP::UserAgent', 0;
