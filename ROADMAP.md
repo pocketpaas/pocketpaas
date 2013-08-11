@@ -1,5 +1,6 @@
 ## MVP
 
+* Run applications as users, not root, inside containers
 * <strike>config yaml file</strike>
 * hipache container set up
 * push routing config into hipache
