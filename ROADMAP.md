@@ -16,6 +16,8 @@
 
 ## Future
 
+* Run sshd in application containers to allow logging in
+* Figure out a convention for handling logs
 * swap application (start up another build and swap out of hipache)
 * clean up output
 * aliasing
