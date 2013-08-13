@@ -1409,6 +1409,16 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.006002
+  LWP-Protocol-http-SocketUnixAlt-0.0202
+    pathname: S/SH/SHARYANTO/LWP-Protocol-http-SocketUnixAlt-0.0202.tar.gz
+    provides:
+      LWP::Protocol::http::SocketUnixAlt 0.0202
+      LWP::Protocol::http::SocketUnixAlt::Socket 0.0202
+    requirements:
+      LWP::Protocol::http 0
+      Module::Build 0.3601
+      Test::More 0.96
+      perl 5.010000
   List-MoreUtils-0.33
     pathname: A/AD/ADAMK/List-MoreUtils-0.33.tar.gz
     provides:
@@ -1635,6 +1645,15 @@ DISTRIBUTIONS
       Perl::Tidy::LineSink 20130806
       Perl::Tidy::LineSource 20130806
       Perl::Tidy::Logger 20130806
+    requirements:
+      ExtUtils::MakeMaker 0
+  Readonly-1.03
+    pathname: R/RO/ROODE/Readonly-1.03.tar.gz
+    provides:
+      Readonly 1.03
+      Readonly::Array 1.03
+      Readonly::Hash 1.03
+      Readonly::Scalar 1.03
     requirements:
       ExtUtils::MakeMaker 0
   Role-Tiny-1.003001
