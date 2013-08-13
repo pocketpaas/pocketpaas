@@ -50,10 +50,11 @@ sub load_app_config {
 
     my $config = {};
 
+    my $loaded_config = {};
     if ( -d $path ) {
         my $full_path = "$path/$POCKET_PAAS_CONFIG";
         if ( -e $full_path ) {
-            $config = LoadFile($full_path);
+            $loaded_config = LoadFile($full_path);
         }
 
     }
@@ -68,7 +69,7 @@ sub load_app_config {
 
     # TODO validate config
 
-    $config->{name} //= $options->{name};
+    $config->{name} = $options->{name} || $loaded_config->{name};
 
     return $config;
 }
