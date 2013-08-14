@@ -71,6 +71,26 @@ sub load_app_config {
 
     $config->{name} = $options->{name} || $loaded_config->{name};
 
+    # TODO consider joining two lists of services if both command line and
+    # config file services were specified
+    if ( $options->{service} ) {
+        foreach my $service_spec ( @{ $options->{service} } ) {
+            my ( $name, $type ) = split( /:/, $service_spec );
+            push @{ $config->{services} }, { name => $name, type => $type };
+        }
+    }
+    else {
+        if ( $loaded_config->{services} ) {
+            foreach my $service ( @{ $loaded_config->{services} } ) {
+                my ($name) = keys %$service;
+                my $type = $service->{$name};
+
+                push @{ $config->{services} },
+                    { name => $name, type => $type };
+            }
+        }
+    }
+
     return $config;
 }
 

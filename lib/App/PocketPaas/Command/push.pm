@@ -16,6 +16,12 @@ use File::Temp qw(tempdir);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
 use File::Path qw(make_path);
+use Readonly;
+
+Readonly my %SERVICE_TYPE_TO_GIT_URL => (
+    mysql => 'https://github.com/pocketpaas/servicepack_mysql.git',
+    redis => 'https://github.com/pocketpaas/servicepack_redis.git',
+);
 
 sub opt_spec {
     return (
@@ -27,6 +33,7 @@ sub opt_spec {
         ],
         [ "no-cache",    "build without using a cache" ],
         [ "reset-cache", "reset the build cache" ],
+        [ "service=s@",  "bind services to the application" ],
     );
 }
 
@@ -108,6 +115,17 @@ sub execute {
         return;
     }
 
+    if ( $app_config->{services} ) {
+        foreach my $service ( @{ $app_config->{services} } ) {
+            my $name = $service->{name};
+            my $type = $service->{type};
+
+            # TODO add support for a git url as the type
+            # TODO provision the service and add the environment variables to
+            #      the run build below
+        }
+    }
+
     prepare_run_build( $app_run_build_dir, $app_name, $tag );
 
     if (!App::PocketPaas::Docker->build(
@@ -176,6 +194,7 @@ sub prepare_run_build {
     write_file( "$app_run_build_dir/Dockerfile", <<DOCKER2);
 from    pocketpaas/$app_name:build-$tag
 env     PORT 5000
+env     POCKETPAAS true
 expose  5000
 cmd     ["/start", "web"]
 DOCKER2
