@@ -150,6 +150,11 @@ sub images {
     return $class->get('/images/json');
 }
 
+sub inspect {
+    my ( $class, $container_id ) = @_;
+    return $class->get("/containers/$container_id/json");
+}
+
 sub get {
     my ( $class, $uri ) = @_;
 

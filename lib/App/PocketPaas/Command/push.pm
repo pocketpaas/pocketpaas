@@ -16,12 +16,6 @@ use File::Temp qw(tempdir);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
 use File::Path qw(make_path);
-use Readonly;
-
-Readonly my %SERVICE_TYPE_TO_GIT_URL => (
-    mysql => 'https://github.com/pocketpaas/servicepack_mysql.git',
-    redis => 'https://github.com/pocketpaas/servicepack_redis.git',
-);
 
 sub opt_spec {
     return (
@@ -115,18 +109,19 @@ sub execute {
         return;
     }
 
+    my $service_env = '';
     if ( $app_config->{services} ) {
         foreach my $service ( @{ $app_config->{services} } ) {
             my $name = $service->{name};
             my $type = $service->{type};
 
             # TODO add support for a git url as the type
-            # TODO provision the service and add the environment variables to
-            #      the run build below
+            $service_env
+                = App::PocketPaas::Util->provision_service( $name, $type );
         }
     }
 
-    prepare_run_build( $app_run_build_dir, $app_name, $tag );
+    prepare_run_build( $app_run_build_dir, $app_name, $tag, $service_env );
 
     if (!App::PocketPaas::Docker->build(
             $app_run_build_dir, "pocketpaas/$app_name:run-$tag"
@@ -189,12 +184,17 @@ DOCKER
 }
 
 sub prepare_run_build {
-    my ( $app_run_build_dir, $app_name, $tag ) = @_;
+    my ( $app_run_build_dir, $app_name, $tag, $service_env ) = @_;
+
+    # TODO fix this to allow '=' in values
+    $service_env =~ s/^/ENV /gmsi;
+    $service_env =~ s/=/ /gmsi;
 
     write_file( "$app_run_build_dir/Dockerfile", <<DOCKER2);
 from    pocketpaas/$app_name:build-$tag
 env     PORT 5000
 env     POCKETPAAS true
+$service_env
 expose  5000
 cmd     ["/start", "web"]
 DOCKER2
