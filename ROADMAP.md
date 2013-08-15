@@ -25,3 +25,4 @@
 * running non-buildpack containers
 * adding arbitrary environment variables to applications
 * many more yaml file features
+* iptables (in service containers) to limit connections between containers and services
