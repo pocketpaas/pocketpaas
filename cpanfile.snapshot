@@ -72,13 +72,6 @@ DISTRIBUTIONS
       parent 0
       strict 0
       warnings 0
-  App-FatPacker-0.009018
-    pathname: E/ET/ETHER/App-FatPacker-0.009018.tar.gz
-    provides:
-      App::FatPacker 0.009018
-      App::FatPacker::Trace undef
-    requirements:
-      ExtUtils::MakeMaker 0
   Capture-Tiny-0.22
     pathname: D/DA/DAGOLDEN/Capture-Tiny-0.22.tar.gz
     provides:
