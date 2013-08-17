@@ -10,6 +10,7 @@ use App::PocketPaas::Service;
 
 use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
+use IPC::Run3;
 
 sub opt_spec {
     return ( [ "name|n=s", "service name" ], [ "type|t=s", "service type" ],
@@ -42,18 +43,13 @@ sub execute {
     }
     elsif ( $command eq 'env' ) {
 
-        my $name = _get_name_opt($opt);
-
-        my $service = App::PocketPaas::Service->get($name)
-            || LOGEXIT("Service '$name' not found.");
+        my $service = _get_service( _get_name_opt($opt) );
 
         print $service->env;
     }
     elsif ( $command eq 'info' ) {
 
-        my $name = _get_name_opt($opt);
-
-        my $service = App::PocketPaas::Service->get($name);
+        my $service = _get_service( _get_name_opt($opt) );
 
         print Dump(
             {   name      => $service->name,
@@ -77,11 +73,17 @@ sub execute {
     }
     elsif ( $command eq 'client' ) {
 
-        # TODO
+        my $service = _get_service( _get_name_opt($opt) );
+
+        # call out to servicepack
+        run3 [ qw(svp client -c), $service->docker_id, ];
     }
     elsif ( $command eq 'shell' ) {
 
-        # TODO
+        my $service = _get_service( _get_name_opt($opt) );
+
+        # call out to servicepack
+        run3 [ qw(svp shell -c), $service->docker_id, ];
     }
 }
 
@@ -93,6 +95,12 @@ sub _get_name_opt {
 sub _get_type_opt {
     return shift->{type}
         || LOGEXIT("Please provide a service type with --type");
+}
+
+sub _get_service {
+    my $name = shift;
+    return App::PocketPaas::Service->get($name)
+        || LOGEXIT("Service '$name' not found.");
 }
 
 1;
