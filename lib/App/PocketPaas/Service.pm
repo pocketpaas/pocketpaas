@@ -4,10 +4,12 @@ use strict;
 use warnings;
 
 use App::PocketPaas::Docker;
+use App::PocketPaas::Notes;
 
 use Log::Log4perl qw(:easy);
 use Readonly;
 use IPC::Run3;
+use File::Path qw(mkpath);
 
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
     mysql => 'https://github.com/pocketpaas/servicepack_mysql.git',
@@ -17,8 +19,7 @@ Readonly my %SERVICE_TYPE_TO_GIT_URL => (
 sub provision {
     my ( $class, $name, $type ) = @_;
 
-    my $service = App::PocketPaas::Model::Service->load( $name, $type,
-        App::PocketPaas::Docker->containers( { all => 1 } ) );
+    my $service = $class->get($name);
 
     if ($service) {
 
@@ -49,7 +50,7 @@ sub provision {
         $service_repo_base ];
 
     # create setup image and capture env variables
-    my $service_repo = "pocketsvc/$type:$name";
+    my $service_repo = "pocketsvc/$name";
     my $output;
     run3 [
         qw(svp setup -b), $service_clone_path,
@@ -61,20 +62,42 @@ sub provision {
     DEBUG("ENV: $output");
 
     # start the service
-    App::PocketPaas::Docker->run( $service_repo, { daemon => 1 } );
+    my $docker_id
+        = App::PocketPaas::Docker->run( $service_repo, { daemon => 1 } );
 
-    $service = App::PocketPaas::Model::Service->load( $name, $type,
-        App::PocketPaas::Docker->containers( { all => 1 } ) );
+    # record information about the new service
+    App::PocketPaas::Notes->add_note(
+        "service_$name",
+        {   docker_id    => $docker_id,
+            env_template => $output,
+            should_be    => 'running',
+            type         => $type,
+        }
+    );
 
-    my $info       = App::PocketPaas::Docker->inspect( $service->docker_id );
+    my $info       = App::PocketPaas::Docker->inspect($docker_id);
     my $ip_address = $info->{NetworkSettings}{IPAddress};
 
     # template env variables
     $output =~ s/%IP/$ip_address/g;
 
-    # TODO cache env variables
-
     return $output;
+}
+
+sub get {
+    my ( $class, $name ) = @_;
+
+    # get type, docker_id from notes
+    my $note = App::PocketPaas::Notes->get_note("service_$name");
+    if ( scalar( keys(%$note) ) == 0 ) {
+        return;
+    }
+
+    my $type      = $note->{type};
+    my $docker_id = $note->{docker_id};
+
+    return App::PocketPaas::Model::Service->load( $name, $type, $docker_id,
+        App::PocketPaas::Docker->containers( { all => 1 } ) );
 }
 
 1;

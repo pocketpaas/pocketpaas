@@ -97,4 +97,25 @@ sub load_app_config {
     return $config;
 }
 
+sub docker_status_to_internal {
+    my ( $class, $docker_status ) = @_;
+
+    my $status;
+
+    if ( $docker_status =~ /^Up/ ) {
+        $status = 'running';
+    }
+    elsif ( $docker_status =~ /^Exit/ ) {
+        $status = 'stopped';
+    }
+    elsif ( $docker_status =~ /^Ghost/ ) {
+        $status = 'ghost';
+    }
+    else {
+        $status = 'unknown';
+    }
+
+    return $status;
+}
+
 1;

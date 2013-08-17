@@ -13,44 +13,39 @@ has status => ( is => 'ro' );
 has image => ( is => 'ro' );
 
 sub load {
-    my ( $class, $name, $type, $docker_containers ) = @_;
+    my ( $class, $name, $type, $docker_id, $docker_containers ) = @_;
 
-# {
-#   'Id' => '8a79577a855d42713158aaaeff29552b765e07748ade5e5172d8a2814e614448',
-#   'Status' => 'Up 13 minutes',
-#   'Image' => 'pocketsvc/mysql:mydb',
-#   'Ports' => '49154->22',
-#   'Command' => '/usr/bin/supervisord',
-#   'SizeRw' => 0,
-#   'Created' => 1374714125,
-#   'SizeRootFs' => 0
-# }
-    my ( $status, $docker_id, $image );
-    foreach my $docker_container (@$docker_containers) {
-        if ( $docker_container->{Image} =~ m{^pocketsvc/$type:$name$} ) {
+    my ( $status, $real_docker_id, $image, $service_container );
+    if ( defined($docker_id) ) {
+        ($service_container)
+            = grep { $_->{Id} =~ /^$docker_id/ } @$docker_containers;
 
-            # TODO detect if multiple containers for same service name/type
-            my $docker_status = $docker_container->{Status};
-            if ( $docker_status =~ /^Up/ ) {
-                $status = 'running';
-            }
-            elsif ( $docker_status =~ /^Exit/ ) {
-                $status = 'stopped';
-            }
-            elsif ( $docker_status =~ /^Ghost/ ) {
-                $status = 'ghost';
-            }
-            else {
-                $status = 'unknown';
-            }
-            $docker_id = substr( $docker_container->{Id}, 0, 12 );
-            $image = $docker_container->{Image};
+        if ($service_container) {
+            $real_docker_id = $docker_id;
         }
     }
+    else {
 
-    if ( !defined($status) ) {
+        # look for the service in the list of running containers
+        foreach my $docker_container (@$docker_containers) {
+
+            # TODO detect if multiple containers for same service name
+            if ( $docker_container->{Image} =~ m{^pocketsvc/$name:latest$} ) {
+
+                $service_container = $docker_container;
+                $real_docker_id = substr( $service_container->{Id}, 0, 12 );
+            }
+        }
+
+    }
+
+    if ( !defined($real_docker_id) ) {
         return;
     }
+
+    $status = App::PocketPaas::Util->docker_status_to_internal(
+        $service_container->{Status} );
+    $image = $service_container->{Image};
 
     return App::PocketPaas::Model::Service->new(
         {   name      => $name,
