@@ -1,86 +1,62 @@
 package App::PocketPaas::Model::Service;
 
+use strict;
+use warnings;
+
 use Moo;
 
-has name => ( is => 'ro' );
-
-has type => ( is => 'ro' );
-
-has docker_id => ( is => 'ro' );
-
-has status => ( is => 'ro' );
-
-has image => ( is => 'ro' );
+has name         => ( is => 'ro' );
+has type         => ( is => 'ro' );
+has docker_id    => ( is => 'ro' );
+has status       => ( is => 'ro' );
+has image        => ( is => 'ro' );
+has env          => ( is => 'ro' );
+has env_template => ( is => 'ro' );
 
 sub load {
-    my ( $class, $name, $type, $docker_id, $docker_containers ) = @_;
+    my ( $class, $name, $type, $env_template, $docker_info ) = @_;
 
-    my ( $status, $real_docker_id, $image, $service_container );
-    if ( defined($docker_id) ) {
-        ($service_container)
-            = grep { $_->{Id} =~ /^$docker_id/ } @$docker_containers;
-
-        if ($service_container) {
-            $real_docker_id = $docker_id;
-        }
-    }
-    else {
-
-        # look for the service in the list of running containers
-        foreach my $docker_container (@$docker_containers) {
-
-            # TODO detect if multiple containers for same service name
-            if ( $docker_container->{Image} =~ m{^pocketsvc/$name:latest$} ) {
-
-                $service_container = $docker_container;
-                $real_docker_id = substr( $service_container->{Id}, 0, 12 );
-            }
-        }
-
-    }
-
-    if ( !defined($real_docker_id) ) {
+    if ( !$docker_info ) {
         return;
     }
 
-    $status = App::PocketPaas::Util->docker_status_to_internal(
-        $service_container->{Status} );
-    $image = $service_container->{Image};
-
-    return App::PocketPaas::Model::Service->new(
-        {   name      => $name,
-            type      => $type,
-            image     => $image,
-            docker_id => $docker_id,
-            status    => $status,
-        }
-    );
-}
-
-sub load_names {
-    my ( $class, $docker_containers ) = @_;
-
-    my $services = [];
-    foreach my $docker_container (@$docker_containers) {
-        if ( my ( $type, $name )
-            = $docker_container->{Image} =~ m{^pocketsvc/([^:]+):([^:]+)$} )
-        {
-            next if $name eq 'base';
-            push @$services, { type => $type, name => $name };
-        }
+    if ( ref($docker_info) eq 'ARRAY' ) {
+        $docker_info = @{$docker_info}[0];
     }
 
-    return $services;
-}
+    my ( $status, $docker_id, $image );
 
-sub load_all {
-    my ( $class, $docker_containers ) = @_;
+    $docker_id = substr( $docker_info->{ID}, 0, 12 );
 
-    my $services = $class->load_names($docker_containers);
-    return [
-        map { $class->load( $_->{name}, $_->{type}, $docker_containers ) }
-            @$services
-    ];
+    if ( $docker_info->{'State'}{'Running'} ) {
+        $status = 'running';
+    }
+    elsif ( $docker_info->{'State'}{'Ghost'} ) {
+        $status = 'ghost';
+    }
+    else {
+        $status = 'stopped';
+    }
+
+    $image = $docker_info->{'Config'}{'Image'};
+
+    # template env variables
+    # (only ip addr for now, maybe ports in the future)
+    my $ip_address = $docker_info->{NetworkSettings}{IPAddress};
+
+    my $env = $env_template;
+    $env =~ s/%IP/$ip_address/g;
+
+    return App::PocketPaas::Model::Service->new(
+        {   name         => $name,
+            type         => $type,
+            image        => $image,
+            docker_id    => $docker_id,
+            status       => $status,
+            env_template => $env_template,
+            env          => $env,
+        }
+    );
 }
 
 1;

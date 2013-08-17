@@ -23,32 +23,45 @@ sub execute {
 
     if ( $command eq 'create' ) {
 
-        my $name = $opt->{name}
-            || die "Please provide a service name with --name\n";
-        my $type = $opt->{type}
-            || die "Please provide a service type with --type\n";
+        my $name = _get_name_opt($opt);
+        my $type = _get_type_opt($opt);
 
-        if ( my $env = App::PocketPaas::Service->provision( $name, $type ) ) {
-            INFO("Service created");
+        my ( $service, $created )
+            = App::PocketPaas::Service->provision( $name, $type );
 
-            print "\n$env\n";
+        if ($created) {
+            INFO("Service created.");
         }
         else {
-            WARN("Service already exists");
+            INFO("Service already exists.");
         }
     }
     elsif ( $command eq 'list' ) {
 
         # TODO
     }
+    elsif ( $command eq 'env' ) {
+
+        my $name = _get_name_opt($opt);
+
+        my $service = App::PocketPaas::Service->get($name)
+            || LOGEXIT("Service '$name' not found.");
+
+        print $service->env;
+    }
     elsif ( $command eq 'info' ) {
 
-        my $name = $opt->{name}
-            || die "Please provide a service name with --name\n";
+        my $name = _get_name_opt($opt);
 
-        # TODO get/print the env variables too
         my $service = App::PocketPaas::Service->get($name);
-        print Dump($service);
+
+        print Dump(
+            {   name      => $service->name,
+                type      => $service->type,
+                docker_id => $service->docker_id,
+                status    => $service->status,
+            }
+        );
     }
     elsif ( $command eq 'stop' ) {
 
@@ -70,6 +83,16 @@ sub execute {
 
         # TODO
     }
+}
+
+sub _get_name_opt {
+    return shift->{name}
+        || LOGEXIT("Please provide a service name with --name");
+}
+
+sub _get_type_opt {
+    return shift->{type}
+        || LOGEXIT("Please provide a service type with --type");
 }
 
 1;
