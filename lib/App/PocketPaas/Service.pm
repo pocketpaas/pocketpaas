@@ -5,6 +5,8 @@ use warnings;
 
 use App::PocketPaas::Docker;
 use App::PocketPaas::Notes;
+use App::PocketPaas::Model::Service;
+use App::PocketPaas::Model::ServiceBase;
 
 use Log::Log4perl qw(:easy);
 use Readonly;
@@ -43,14 +45,26 @@ sub provision {
             run3 [ qw(git clone --depth 1), $git_url, $service_clone_path ];
         }
 
-        # build the base image
-        # TODO check if base exists already
-        my $service_repo_base = "pocketsvc/$type:base";
+        # TODO for other kinds of services (non-servicepack), don't use this
 
-        run3 [
-            qw(svp build -b), $service_clone_path,
-            qw(-t),           $service_repo_base
-        ];
+        # check if base exists already
+        my $service_base = App::PocketPaas::Model::ServiceBase->load( $type,
+            App::PocketPaas::Docker->images() );
+
+        # TODO don't duplicate the prefix here and in ServiceBase
+        my $service_repo_base = "pocketbase/$type";
+        if ( !$service_base ) {
+
+            # build the base image
+            run3 [
+                qw(svp build -b), $service_clone_path,
+                qw(-t),           $service_repo_base
+            ];
+
+            $service_base
+                = App::PocketPaas::Model::ServiceBase->load( $type,
+                App::PocketPaas::Docker->images() );
+        }
 
         # create setup image and capture env variables
         my $service_repo = "pocketsvc/$name";
