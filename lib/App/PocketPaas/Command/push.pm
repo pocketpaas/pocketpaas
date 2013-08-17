@@ -7,6 +7,7 @@ use strict;
 use warnings;
 
 use App::PocketPaas::Docker;
+use App::PocketPaas::Service;
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Util;
 
@@ -117,7 +118,7 @@ sub execute {
 
             # TODO add support for a git url as the type
             $service_env
-                = App::PocketPaas::Util->provision_service( $name, $type );
+                = App::PocketPaas::Service->provision( $name, $type );
         }
     }
 
