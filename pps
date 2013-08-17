@@ -7,7 +7,7 @@ use FindBin qw($Bin);
 use lib "$Bin/lib";
 use lib "$Bin/local/lib/perl5";
 
-use Log::Log4perl qw(:easy);
+use Log::Log4perl;
 
 Log::Log4perl->init( \ <<'EOT');
   log4perl.category = DEBUG, Screen
