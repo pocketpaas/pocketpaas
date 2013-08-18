@@ -87,6 +87,7 @@ sub provision_service {
             "service_$name",
             {   docker_id    => $docker_id,
                 env_template => $output,
+                name         => $name,
                 should_be    => 'running',
                 type         => $type,
             }
@@ -164,11 +165,10 @@ sub get_all {
     my $services = [];
 
     foreach my $note (@$service_notes) {
-        my $name     = $note->{key};
+        my $key      = $note->{key};
         my $contents = $note->{contents};
 
-        $name =~ s/service_(.+)/$1/;
-
+        my $name           = $contents->{name};
         my $type           = $contents->{type};
         my $docker_id      = $contents->{docker_id};
         my $env_template   = $contents->{env_template};

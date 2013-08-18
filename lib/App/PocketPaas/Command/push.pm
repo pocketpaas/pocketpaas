@@ -152,6 +152,7 @@ sub execute {
     App::PocketPaas::Notes->add_note(
         "app_$app_name",
         {   services  => $service_names,
+            name      => $app_name,
             should_be => 'running',
         }
     );
