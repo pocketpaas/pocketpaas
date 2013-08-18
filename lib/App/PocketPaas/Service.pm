@@ -115,6 +115,7 @@ sub stop_service {
             }
         );
 
+        # TODO only count apps that are running (or should be running)
         my $app_names = [ map { $_->{contents}{name} } @$app_notes ];
 
         if ( scalar @$app_names == 0 ) {
