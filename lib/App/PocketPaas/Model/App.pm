@@ -65,9 +65,9 @@ sub load {
 
     my $potential_tags = {};
     foreach my $docker_image (@$docker_images) {
-
-        # TODO ignore images with no Repository
-        if ( $docker_image->{Repository} eq "pocketpaas/$name" ) {
+        if ( defined( $docker_image->{Repository} )
+            && $docker_image->{Repository} eq "pocketpaas/$name" )
+        {
             my ( $type, $tag )
                 = $docker_image->{Tag} =~ m{^(build|run|temp)-([\d-]+)$};
             $potential_tags->{$tag}->{$type} = 1;
@@ -108,6 +108,8 @@ sub load_names {
         }
     }
     foreach my $docker_image (@$docker_images) {
+        next if !defined( $docker_image->{Repository} );
+
         if ( my ($app_name)
             = $docker_image->{Repository} =~ m{pocketpaas/([^:]+)} )
         {
