@@ -150,4 +150,36 @@ sub get {
         $env_template, $container_info );
 }
 
+sub get_all {
+    my ($class) = @_;
+
+    # get type, docker_id from notes
+    my $service_notes = App::PocketPaas::Notes->query_notes(
+        sub {
+            my ( $key, $contents ) = @_;
+            return $key =~ /^service_/;
+        }
+    );
+
+    my $services = [];
+
+    foreach my $note (@$service_notes) {
+        my $name     = $note->{key};
+        my $contents = $note->{contents};
+
+        $name =~ s/service_(.+)/$1/;
+
+        my $type           = $contents->{type};
+        my $docker_id      = $contents->{docker_id};
+        my $env_template   = $contents->{env_template};
+        my $container_info = App::PocketPaas::Docker->inspect($docker_id);
+
+        push @$services,
+            App::PocketPaas::Model::Service->load( $name, $type,
+            $env_template, $container_info );
+    }
+
+    return $services;
+}
+
 1;

@@ -39,7 +39,9 @@ sub execute {
     }
     elsif ( $command eq 'list' ) {
 
-        # TODO
+        my $services = App::PocketPaas::Service->get_all();
+
+        print Dump( [ map { $_->{name} } @$services ] );
     }
     elsif ( $command eq 'env' ) {
 
