@@ -18,7 +18,7 @@ Readonly my %SERVICE_TYPE_TO_GIT_URL => (
     redis => 'https://github.com/pocketpaas/servicepack_redis.git',
 );
 
-sub provision {
+sub provision_service {
     my ( $class, $name, $type ) = @_;
 
     my $created = 1;
@@ -96,6 +96,38 @@ sub provision {
     }
 
     return wantarray ? ( $service, $created ) : $service;
+}
+
+sub stop_service {
+    my ( $class, $name ) = @_;
+
+    my $service = $class->get($name);
+
+    if ($service) {
+        if ( $service->status ne 'stopped' ) {
+            App::PocketPaas::Docker->stop( $service->docker_id );
+            INFO("Service '$name' stopped.");
+        }
+    }
+    else {
+        WARN("Service '$name' not found.");
+    }
+}
+
+sub start_service {
+    my ( $class, $name ) = @_;
+
+    my $service = $class->get($name);
+
+    if ($service) {
+        if ( $service->status ne 'running' ) {
+            App::PocketPaas::Docker->start( $service->docker_id );
+            INFO("Service '$name' started.");
+        }
+    }
+    else {
+        WARN("Service '$name' not found.");
+    }
 }
 
 sub get {

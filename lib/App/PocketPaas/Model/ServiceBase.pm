@@ -17,7 +17,9 @@ sub load {
 
     foreach my $docker_image (@$docker_images) {
 
-        if ( $docker_image->{Repository} eq "pocketbase/$type" ) {
+        if ( defined( $docker_image->{Repository} )
+            && $docker_image->{Repository} eq "pocketbase/$type" )
+        {
             push @$tags, $docker_image->{Tag};
         }
     }

@@ -28,7 +28,7 @@ sub execute {
         my $type = _get_type_opt($opt);
 
         my ( $service, $created )
-            = App::PocketPaas::Service->provision( $name, $type );
+            = App::PocketPaas::Service->provision_service( $name, $type );
 
         if ($created) {
             INFO("Service created.");
@@ -60,12 +60,16 @@ sub execute {
         );
     }
     elsif ( $command eq 'stop' ) {
+        my $name    = _get_name_opt($opt);
+        my $service = _get_service($name);
 
-        # TODO
+        App::PocketPaas::Service->stop_service($name);
     }
     elsif ( $command eq 'start' ) {
+        my $name    = _get_name_opt($opt);
+        my $service = _get_service($name);
 
-        # TODO
+        App::PocketPaas::Service->start_service($name);
     }
     elsif ( $command eq 'destroy' ) {
 

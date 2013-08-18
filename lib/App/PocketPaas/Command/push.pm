@@ -118,7 +118,7 @@ sub execute {
 
             # TODO add support for a git url as the type
             $service_env
-                = App::PocketPaas::Service->provision( $name, $type );
+                = App::PocketPaas::Service->provision_service( $name, $type );
         }
     }
 

@@ -102,7 +102,21 @@ sub stop {
 
     my @run_cmd = ( @DOCKER, qw(stop), $container_id );
 
-    run3 \@run_cmd;
+    run3 \@run_cmd, \undef, \undef, \undef;
+
+    if ($rc) {
+        WARN("stop failed for container $container_id");
+    }
+
+    return !$rc;
+}
+
+sub start {
+    my ( $class, $container_id ) = @_;
+
+    my @run_cmd = ( @DOCKER, qw(start), $container_id );
+
+    run3 \@run_cmd, \undef, \undef, \undef;
 
     if ($rc) {
         WARN("stop failed for container $container_id");
