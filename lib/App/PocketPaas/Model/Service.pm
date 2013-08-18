@@ -47,6 +47,9 @@ sub load {
     my $env = $env_template;
     $env =~ s/%IP/$ip_address/g;
 
+    my $uc_name = uc($name);
+    $env =~ s/^/POCKETPAAS_${uc_name}_/gms;
+
     return App::PocketPaas::Model::Service->new(
         {   name         => $name,
             type         => $type,
