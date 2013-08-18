@@ -39,4 +39,19 @@ sub get_note {
     return {};
 }
 
+sub delete_note {
+    my ( $class, $key ) = @_;
+
+    my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
+    if ( !-e $notes_dir ) {
+        DEBUG("making notes directory $notes_dir");
+        mkpath($notes_dir);
+    }
+
+    my $note_file = "$notes_dir/$key.json";
+    if ( -e $note_file ) {
+        unlink($note_file);
+    }
+}
+
 1;

@@ -57,6 +57,9 @@ sub execute {
         $status->{state} = 'stopped';
     }
 
+    my $note = App::PocketPaas::Notes->get_note("app_$app_name");
+    $status->{services} = $note->{services};
+
     print Dump($status);
 }
 

@@ -9,6 +9,7 @@ use warnings;
 use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Util;
+use App::PocketPaas::Notes;
 
 use Cwd;
 use Log::Log4perl qw(:easy);
@@ -55,6 +56,8 @@ sub execute {
             App::PocketPaas::Docker->rmi(
                 "pocketpaas/$app_name:" . $image->run_tag() );
         }
+
+        App::PocketPaas::Notes->delete_note("app_$app_name");
     }
     else {
         ERROR("No app by the name of $app_name");

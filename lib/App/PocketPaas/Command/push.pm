@@ -10,6 +10,7 @@ use App::PocketPaas::Docker;
 use App::PocketPaas::Service;
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Util;
+use App::PocketPaas::Notes;
 
 use Cwd;
 use File::Slurp qw(write_file);
@@ -110,15 +111,20 @@ sub execute {
         return;
     }
 
-    my $service_env = '';
+    my $service_env   = '';
+    my $service_names = [];
     if ( $app_config->{services} ) {
         foreach my $service ( @{ $app_config->{services} } ) {
             my $name = $service->{name};
             my $type = $service->{type};
 
             # TODO add support for a git url as the type
-            $service_env
+            $service
                 = App::PocketPaas::Service->provision_service( $name, $type );
+
+            $service_env .= $service->env();
+
+            push @$service_names, $name;
         }
     }
 
@@ -132,9 +138,6 @@ sub execute {
         return;
     }
 
-    # TODO create run image with environment, including
-    # any services
-
     # now start it up (-:
     INFO("Starting application");
     if (!App::PocketPaas::Docker->run(
@@ -145,6 +148,13 @@ sub execute {
     {
         return;
     }
+
+    App::PocketPaas::Notes->add_note(
+        "app_$app_name",
+        {   services  => $service_names,
+            should_be => 'running',
+        }
+    );
 
     INFO("TODO: putting new application into hipache proxy");
 
