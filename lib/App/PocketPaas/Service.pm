@@ -62,8 +62,7 @@ sub provision_service {
                 qw(-t),           $service_repo_base
             ];
 
-            $service_base
-                = App::PocketPaas::Model::ServiceBase->load( $type,
+            $service_base = App::PocketPaas::Model::ServiceBase->load( $type,
                 App::PocketPaas::Docker->images() );
         }
 
