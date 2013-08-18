@@ -8,6 +8,7 @@ use App::PocketPaas::Notes;
 use App::PocketPaas::Model::Service;
 use App::PocketPaas::Model::ServiceBase;
 
+use List::MoreUtils qw(any);
 use Log::Log4perl qw(:easy);
 use Readonly;
 use IPC::Run3;
@@ -105,9 +106,29 @@ sub stop_service {
     my $service = $class->get($name);
 
     if ($service) {
-        if ( $service->status ne 'stopped' ) {
-            App::PocketPaas::Docker->stop( $service->docker_id );
-            INFO("Service '$name' stopped.");
+        my $app_notes = App::PocketPaas::Notes->query_notes(
+            sub {
+                my ( $key, $contents ) = @_;
+
+                return 0 unless $key =~ /^app_/;
+                return any { $_ eq $name } @{ $contents->{services} };
+            }
+        );
+
+        my $app_names = [ map { $_->{contents}{name} } @$app_notes ];
+
+        if ( scalar @$app_names == 0 ) {
+            if ( $service->status ne 'stopped' ) {
+                App::PocketPaas::Docker->stop( $service->docker_id );
+                INFO("Service '$name' stopped.");
+            }
+        }
+        else {
+            WARN(
+                      "Not stopping service '$name', applications ("
+                    . join( ',', @$app_names )
+                    . ") are using it.",
+            );
         }
     }
     else {
@@ -125,6 +146,8 @@ sub start_service {
             App::PocketPaas::Docker->start( $service->docker_id );
             INFO("Service '$name' started.");
         }
+
+        # TODO restart applications that depend on this service
     }
     else {
         WARN("Service '$name' not found.");
