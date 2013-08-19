@@ -33,14 +33,14 @@ sub push_app {
     my $tag = App::PocketPaas::Util::next_tag($app);
 
     if (App::PocketPaas::Docker->build(
-            $app_build_dir, "pocketpaas/$app_name:temp-$tag"
+            $app_build_dir, "pocketapp/$app_name:temp-$tag"
         )
         )
     {
         INFO("Application built successfully");
     }
     else {
-        App::PocketPaas::Docker->rmi("pocketpaas/$app_name:temp-$tag");
+        App::PocketPaas::Docker->rmi("pocketapp/$app_name:temp-$tag");
         return;
     }
 
@@ -58,7 +58,7 @@ sub push_app {
 
     INFO("Building application");
     if (my $build_container_id = App::PocketPaas::Docker->run(
-            "pocketpaas/$app_name:temp-$tag",
+            "pocketapp/$app_name:temp-$tag",
             {   daemon  => 1,
                 command => '/build/builder',
                 %cache_volume_opts
@@ -71,7 +71,7 @@ sub push_app {
 
         if ( App::PocketPaas::Docker->wait($build_container_id) ) {
             App::PocketPaas::Docker->commit( $build_container_id,
-                "pocketpaas/$app_name", "build-$tag" );
+                "pocketapp/$app_name", "build-$tag" );
         }
         else {
             # TODO: clean up images
@@ -84,7 +84,7 @@ sub push_app {
 
     $class->start_app( $app_config, $tag, $app );
 
-    App::PocketPaas::Docker->rmi("pocketpaas/$app_name:temp-$tag");
+    App::PocketPaas::Docker->rmi("pocketapp/$app_name:temp-$tag");
 
 }
 
@@ -118,7 +118,7 @@ sub start_app {
     prepare_run_build( $app_run_build_dir, $app_name, $tag, $service_env );
 
     if (!App::PocketPaas::Docker->build(
-            $app_run_build_dir, "pocketpaas/$app_name:run-$tag"
+            $app_run_build_dir, "pocketapp/$app_name:run-$tag"
         )
         )
     {
@@ -128,7 +128,7 @@ sub start_app {
     # now start it up (-:
     INFO("Starting application");
     if (!App::PocketPaas::Docker->run(
-            "pocketpaas/$app_name:run-$tag",
+            "pocketapp/$app_name:run-$tag",
             { daemon => 1 }
         )
         )
@@ -191,9 +191,9 @@ sub destroy_app {
 
     foreach my $image ( @{ $app->images() } ) {
         App::PocketPaas::Docker->rmi(
-            "pocketpaas/$app_name:" . $image->build_tag() );
+            "pocketapp/$app_name:" . $image->build_tag() );
         App::PocketPaas::Docker->rmi(
-            "pocketpaas/$app_name:" . $image->run_tag() );
+            "pocketapp/$app_name:" . $image->run_tag() );
     }
 
     App::PocketPaas::Notes->delete_note("app_$app_name");
@@ -229,7 +229,7 @@ sub prepare_run_build {
     $service_env =~ s/=/ /gmsi;
 
     write_file( "$app_run_build_dir/Dockerfile", <<DOCKER2);
-from    pocketpaas/$app_name:build-$tag
+from    pocketapp/$app_name:build-$tag
 env     PORT 5000
 env     POCKETPAAS true
 $service_env
