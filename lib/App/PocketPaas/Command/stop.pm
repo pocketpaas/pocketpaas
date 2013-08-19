@@ -6,12 +6,12 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
+use App::PocketPaas::App;
 use App::PocketPaas::Docker;
-use App::PocketPaas::Util;
 use App::PocketPaas::Model::App;
+use App::PocketPaas::Util;
 
 use Cwd;
-
 use Log::Log4perl qw(:easy);
 
 sub opt_spec {
@@ -41,19 +41,9 @@ sub execute {
         return;
     }
 
-    if ($app) {
-        INFO("Stopping running containers");
-        foreach my $container ( @{ $app->containers() } ) {
-            if ( $container->status() eq 'running' ) {
-                App::PocketPaas::Docker->stop( $container->docker_id() );
-            }
-        }
-    }
-    else {
-        ERROR("No app by the name of $app_name");
-        return;
-    }
+    INFO("Stopping $app_name");
 
+    App::PocketPaas::App->stop_app( $app_config, $app );
 }
 
 1;

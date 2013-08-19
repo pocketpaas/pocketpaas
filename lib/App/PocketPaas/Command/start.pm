@@ -6,9 +6,10 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
+use App::PocketPaas::App;
 use App::PocketPaas::Docker;
-use App::PocketPaas::Util;
 use App::PocketPaas::Model::App;
+use App::PocketPaas::Util;
 
 use Cwd;
 use Log::Log4perl qw(:easy);
@@ -30,8 +31,6 @@ sub execute {
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    # TODO check for application already running
-
     my $app = App::PocketPaas::Model::App->load(
         $app_name,
         App::PocketPaas::Docker->containers( { all => 1 } ),
@@ -42,6 +41,10 @@ sub execute {
         ERROR("No app by the name of $app_name");
         return;
     }
+
+    INFO("Starting $app_name");
+
+    # TODO check for application already running
 
     my $build = $opt->{build};
 
@@ -58,14 +61,7 @@ sub execute {
         $image = @{ $app->images }[0];
     }
 
-    # TODO create new run image with environment, including
-    # any services
-
-    App::PocketPaas::Docker->run( "pocketpaas/$app_name:" . $image->run_tag(),
-        { daemon => 1 } );
-
-    # TODO record which build was used so that the same
-    # one can be used in recovery.
+    App::PocketPaas::App->start_app( $app_config, $image->tag(), $app );
 }
 
 1;

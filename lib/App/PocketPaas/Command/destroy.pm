@@ -6,10 +6,10 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
+use App::PocketPaas::App;
 use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Util;
-use App::PocketPaas::Notes;
 
 use Cwd;
 use Log::Log4perl qw(:easy);
@@ -36,34 +36,16 @@ sub execute {
         App::PocketPaas::Docker->images()
     );
 
-    INFO("Destroying $app_name");
-
-    # TODO: check for running services and
-    # stop/destroy them, with confirmation
-
-    if ($app) {
-        INFO("Stopping running containers");
-        foreach my $container ( @{ $app->containers() } ) {
-            if ( $container->status() eq 'running' ) {
-                App::PocketPaas::Docker->stop( $container->docker_id() );
-            }
-            App::PocketPaas::Docker->rm( $container->docker_id() );
-        }
-
-        foreach my $image ( @{ $app->images() } ) {
-            App::PocketPaas::Docker->rmi(
-                "pocketpaas/$app_name:" . $image->build_tag() );
-            App::PocketPaas::Docker->rmi(
-                "pocketpaas/$app_name:" . $image->run_tag() );
-        }
-
-        App::PocketPaas::Notes->delete_note("app_$app_name");
-    }
-    else {
+    if ( !$app ) {
         ERROR("No app by the name of $app_name");
         return;
     }
 
+    # TODO add confirmation
+
+    INFO("Destroying $app_name");
+
+    App::PocketPaas::App->destroy_app( $app_config, $app );
 }
 
 1;

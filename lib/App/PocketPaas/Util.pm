@@ -72,6 +72,10 @@ sub load_app_config {
 
     # TODO validate config
 
+    # there is no reset_cache or no_cache in the app yaml file
+    $config->{no_cache}    = $options->{no_cache};
+    $config->{reset_cache} = $options->{reset_cache};
+
     $config->{name} = $options->{name} || $loaded_config->{name};
 
     # TODO consider joining two lists of services if both command line and
