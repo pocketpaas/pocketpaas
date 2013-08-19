@@ -15,12 +15,13 @@ use IPC::Run3;
 use File::Path qw(mkpath);
 
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
-    mysql => 'https://github.com/pocketpaas/servicepack_mysql.git',
-    redis => 'https://github.com/pocketpaas/servicepack_redis.git',
+    mysql   => 'https://github.com/pocketpaas/servicepack_mysql.git',
+    redis   => 'https://github.com/pocketpaas/servicepack_redis.git',
+    hipache => 'https://github.com/pocketpaas/servicepack_hipache.git',
 );
 
 sub provision_service {
-    my ( $class, $name, $type ) = @_;
+    my ( $class, $name, $type, $options ) = @_;
 
     my $created = 1;
     my $service = $class->get($name);
@@ -80,7 +81,8 @@ sub provision_service {
 
         # start the service
         my $docker_id
-            = App::PocketPaas::Docker->run( $service_repo, { daemon => 1 } );
+            = App::PocketPaas::Docker->run( $service_repo,
+            { daemon => 1, ports => $options->{ports} } );
 
         # record information about the new service
         App::PocketPaas::Notes->add_note(

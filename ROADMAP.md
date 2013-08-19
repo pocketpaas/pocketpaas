@@ -2,7 +2,6 @@
 
 * implement consistent config handling
 * Run applications as users, not root, inside containers
-* hipache container set up
 * push routing config into hipache
 * clean up old application images/containers
 * 2 or 3 more servicepacks, mongo, <strike>redis</strike>, rabbitmq, etc.
@@ -10,6 +9,7 @@
   * reference
   * quick start
 * packaging for both
+* <strike>hipache container set up</strike>
 * <strike>app config yaml file</strike>
 * <strike>stop application</strike>
 * <strike>start application</strike>

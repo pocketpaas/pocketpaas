@@ -6,6 +6,7 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
+use App::PocketPaas;
 use App::PocketPaas::Service;
 
 use Log::Log4perl qw(:easy);
@@ -19,6 +20,8 @@ sub opt_spec {
 
 sub execute {
     my ( $self, $opt, $args ) = @_;
+
+    App::PocketPaas->setup();
 
     my $command = shift @$args;
 

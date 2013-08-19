@@ -64,6 +64,10 @@ sub run {
         push @args, '-v', $_ for @{ $options->{volumes} };
     }
 
+    if ( $options->{ports} ) {
+        push @args, '-p', $_ for @{ $options->{ports} };
+    }
+
     if ( $options->{daemon} ) {
 
         my $output;

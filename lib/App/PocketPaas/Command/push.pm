@@ -6,12 +6,8 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
+use App::PocketPaas;
 use App::PocketPaas::App;
-
-use App::PocketPaas::Docker;
-use App::PocketPaas::Model::App;
-use App::PocketPaas::Notes;
-use App::PocketPaas::Service;
 use App::PocketPaas::Util;
 
 use Cwd;
@@ -37,6 +33,8 @@ sub opt_spec {
 
 sub execute {
     my ( $self, $opt, $args ) = @_;
+
+    App::PocketPaas->setup();
 
     my $app_config = App::PocketPaas::Util->load_app_config( getcwd, $opt );
 
