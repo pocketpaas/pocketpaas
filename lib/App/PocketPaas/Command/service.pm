@@ -68,6 +68,8 @@ sub execute {
         my $name    = _get_name_opt($opt);
         my $service = _get_service($name);
 
+        # TODO prevent stopping core pps services
+
         App::PocketPaas::Service->stop_service($name);
     }
     elsif ( $command eq 'start' ) {
