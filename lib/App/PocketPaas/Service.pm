@@ -96,9 +96,10 @@ sub provision_service {
                 type         => $type,
             }
         );
-
-        $service = $class->get($name);
     }
+
+    # load service again to have latest env
+    $service = $class->get($name);
 
     return wantarray ? ( $service, $created ) : $service;
 }
