@@ -28,7 +28,9 @@ sub provision_service {
 
     if ($service) {
 
-        # TODO start service if not running
+        # start service if not running
+        $class->start_service($name);
+
         $created = 0;
     }
     else {
