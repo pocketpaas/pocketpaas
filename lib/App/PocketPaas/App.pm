@@ -157,6 +157,8 @@ sub start_app {
         }
     }
 
+    # TODO remove previous "run" tag, if it exists
+
     # TODO record which build was used so that the same
     # one can be used in recovery.
 }
