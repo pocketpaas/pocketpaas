@@ -1,5 +1,6 @@
 ## MVP
 
+* implement consistent config handling
 * Run applications as users, not root, inside containers
 * <strike>config yaml file</strike>
 * hipache container set up
@@ -8,11 +9,12 @@
 * <strike>start application</strike>
 * <strike>delete application</strike>
 * clean up old application images/containers
-* service provisioning with servicepack
+* <strike>service provisioning with servicepack</strike>
 * 2 or 3 more servicepacks, mongo, <strike>redis</strike>, rabbitmq, etc.
 * documentation for both pocketpaas and servicepack
   * reference
   * quick start
+* packaging for both
 
 ## Future
 
