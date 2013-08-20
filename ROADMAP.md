@@ -2,13 +2,13 @@
 
 * implement consistent config handling
 * Run applications as users, not root, inside containers
-* push routing config into hipache
 * clean up old application images/containers
 * 2 or 3 more servicepacks, mongo, <strike>redis</strike>, rabbitmq, etc.
 * documentation for both pocketpaas and servicepack
   * reference
   * quick start
 * packaging for both
+* <strike>push routing config into hipache</strike>
 * <strike>hipache container set up</strike>
 * <strike>app config yaml file</strike>
 * <strike>stop application</strike>

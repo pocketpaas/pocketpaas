@@ -12,3 +12,4 @@ requires 'YAML', 0;
 requires 'Readonly', 0;
 requires 'LWP::Protocol::http::SocketUnixAlt', 0;
 requires 'List::MoreUtils', 0;
+requires 'Redis', 0;

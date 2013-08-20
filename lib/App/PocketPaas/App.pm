@@ -127,14 +127,16 @@ sub start_app {
 
     # now start it up (-:
     INFO("Starting application");
-    if (!App::PocketPaas::Docker->run(
-            "pocketapp/$app_name:run-$tag",
-            { daemon => 1 }
-        )
-        )
-    {
+    my $docker_id
+        = App::PocketPaas::Docker->run( "pocketapp/$app_name:run-$tag",
+        { daemon => 1 } );
+
+    if ( !$docker_id ) {
         return;
     }
+
+    # add to hipache
+    App::PocketPaas::Hipache->add_app( $app_config, $docker_id );
 
     App::PocketPaas::Notes->add_note(
         "app_$app_name",
@@ -143,8 +145,6 @@ sub start_app {
             should_be => 'running',
         }
     );
-
-    INFO("TODO: putting new application into hipache proxy");
 
     # if app was previously running
     if ($app) {
