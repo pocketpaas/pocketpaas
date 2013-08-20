@@ -9,6 +9,9 @@ use Log::Log4perl qw(:easy);
 use Net::Domain qw(domainname);
 use Readonly;
 
+use Sub::Exporter -setup =>
+    { exports => [qw(get_config set_config unset_config)] };
+
 Readonly my $DEFAULT_BASE_DOMAIN          => domainname();
 Readonly my $DEFAULT_BASE_DIR             => "$ENV{HOME}/.pocketpaas";
 Readonly my $DEFAULT_APP_IMAGE_PREFIX     => 'pocketapp';

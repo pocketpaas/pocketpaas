@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use App::PocketPaas::Docker;
-use App::PocketPaas::Hipache;
+use App::PocketPaas::Hipache qw(add_hipache_app);
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Util;
 
@@ -13,6 +13,9 @@ use File::Slurp qw(write_file);
 use File::Temp qw(tempdir);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
+
+use Sub::Exporter -setup =>
+    { exports => [ qw(push_app start_app stop_app destroy_app) ] };
 
 sub push_app {
     my ( $class, $app_config ) = @_;
@@ -94,7 +97,7 @@ sub push_app {
 }
 
 sub start_app {
-    my ( $class, $app_config, $tag, $app ) = @_;
+    my ( $config, $app_config, $tag, $app ) = @_;
 
     my $app_name = $app_config->{name};
 
@@ -141,7 +144,7 @@ sub start_app {
     }
 
     # add to hipache
-    App::PocketPaas::Hipache->add_app( $app_config, $docker_id );
+    add_hipache_app( $config, $app_config, $docker_id );
 
     App::PocketPaas::Notes->add_note(
         "app_$app_name",

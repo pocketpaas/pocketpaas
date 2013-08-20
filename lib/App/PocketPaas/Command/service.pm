@@ -6,8 +6,10 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas;
-use App::PocketPaas::Service;
+use App::PocketPaas::Core qw(setup_pocketpaas);
+use App::PocketPaas::Config qw(get_config);
+use App::PocketPaas::Service
+    qw(provision_service get_service get_all_services stop_service start_service);
 
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
@@ -21,7 +23,8 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    App::PocketPaas->setup();
+    my $config = get_config();
+    setup_pocketpaas($config);
 
     my $command = shift @$args;
 
@@ -31,7 +34,7 @@ sub execute {
         my $type = _get_type_opt($opt);
 
         my ( $service, $created )
-            = App::PocketPaas::Service->provision_service( $name, $type );
+            = provision_service( $config, $name, $type );
 
         if ($created) {
             INFO("Service created.");
@@ -42,19 +45,19 @@ sub execute {
     }
     elsif ( $command eq 'list' ) {
 
-        my $services = App::PocketPaas::Service->get_all();
+        my $services = get_all_services($config);
 
         print Dump( [ map { $_->{name} } @$services ] );
     }
     elsif ( $command eq 'env' ) {
 
-        my $service = _get_service( _get_name_opt($opt) );
+        my $service = _get_service( $config, _get_name_opt($opt) );
 
         print $service->env;
     }
     elsif ( $command eq 'info' ) {
 
-        my $service = _get_service( _get_name_opt($opt) );
+        my $service = _get_service( $config, _get_name_opt($opt) );
 
         print Dump(
             {   name      => $service->name,
@@ -65,18 +68,18 @@ sub execute {
         );
     }
     elsif ( $command eq 'stop' ) {
-        my $name    = _get_name_opt($opt);
-        my $service = _get_service($name);
+        my $name = _get_name_opt($opt);
+        my $service = _get_service( $config, $name );
 
         # TODO prevent stopping core pps services
 
-        App::PocketPaas::Service->stop_service($name);
+        stop_service( $config, $name );
     }
     elsif ( $command eq 'start' ) {
-        my $name    = _get_name_opt($opt);
-        my $service = _get_service($name);
+        my $name = _get_name_opt($opt);
+        my $service = _get_service( $config, $name );
 
-        App::PocketPaas::Service->start_service($name);
+        start_service( $config, $name );
     }
     elsif ( $command eq 'destroy' ) {
 
@@ -84,14 +87,14 @@ sub execute {
     }
     elsif ( $command eq 'client' ) {
 
-        my $service = _get_service( _get_name_opt($opt) );
+        my $service = _get_service( $config, _get_name_opt($opt) );
 
         # call out to servicepack
         run3 [ qw(svp client -c), $service->docker_id, ];
     }
     elsif ( $command eq 'shell' ) {
 
-        my $service = _get_service( _get_name_opt($opt) );
+        my $service = _get_service( $config, _get_name_opt($opt) );
 
         # call out to servicepack
         run3 [ qw(svp shell -c), $service->docker_id, ];
@@ -109,8 +112,8 @@ sub _get_type_opt {
 }
 
 sub _get_service {
-    my $name = shift;
-    return App::PocketPaas::Service->get($name)
+    my ( $config, $name ) = @_;
+    return get_service( $config, $name )
         || LOGEXIT("Service '$name' not found.");
 }
 

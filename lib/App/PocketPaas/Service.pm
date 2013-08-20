@@ -14,6 +14,12 @@ use List::MoreUtils qw(any);
 use Log::Log4perl qw(:easy);
 use Readonly;
 
+use Sub::Exporter -setup => {
+    exports => [
+        qw(provision_service stop_service start_service get_service get_all_services)
+    ]
+};
+
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
     mysql   => 'https://github.com/pocketpaas/servicepack_mysql.git',
     redis   => 'https://github.com/pocketpaas/servicepack_redis.git',
@@ -24,12 +30,12 @@ sub provision_service {
     my ( $class, $name, $type, $options ) = @_;
 
     my $created = 1;
-    my $service = $class->get($name);
+    my $service = get_service( $class, $name );
 
     if ($service) {
 
         # start service if not running
-        $class->start_service($name);
+        start_service( $class, $name );
 
         $created = 0;
     }
@@ -99,7 +105,7 @@ sub provision_service {
     }
 
     # load service again to have latest env
-    $service = $class->get($name);
+    $service = get_service( $class, $name );
 
     return wantarray ? ( $service, $created ) : $service;
 }
@@ -107,7 +113,7 @@ sub provision_service {
 sub stop_service {
     my ( $class, $name ) = @_;
 
-    my $service = $class->get($name);
+    my $service = get_service( $class, $name );
 
     if ($service) {
         my $app_notes = App::PocketPaas::Notes->query_notes(
@@ -144,7 +150,7 @@ sub stop_service {
 sub start_service {
     my ( $class, $name ) = @_;
 
-    my $service = $class->get($name);
+    my $service = get_service( $class, $name );
 
     if ($service) {
         if ( $service->status ne 'running' ) {
@@ -159,7 +165,7 @@ sub start_service {
     }
 }
 
-sub get {
+sub get_service {
     my ( $class, $name ) = @_;
 
     # get type, docker_id from notes
@@ -179,7 +185,7 @@ sub get {
         $env_template, $container_info );
 }
 
-sub get_all {
+sub get_all_services {
     my ($class) = @_;
 
     # get type, docker_id from notes

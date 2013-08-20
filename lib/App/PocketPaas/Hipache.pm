@@ -4,13 +4,15 @@ use strict;
 use warnings;
 
 use App::PocketPaas::Docker;
-use App::PocketPaas::Service;
+use App::PocketPaas::Service qw(get_service);
 
 use Log::Log4perl qw(:easy);
 use Redis;
 
-sub add_app {
-    my ( $class, $app_config, $docker_id ) = @_;
+use Sub::Exporter -setup => { exports => [ qw(add_hipache_app) ] };
+
+sub add_hipache_app {
+    my ( $config, $app_config, $docker_id ) = @_;
 
     INFO("Putting new application into hipache proxy");
 
@@ -22,7 +24,7 @@ sub add_app {
     my $app_port       = 5000;
     DEBUG("Mapping $app_config->{name}.$domain to $app_ip_address:$app_port");
 
-    my $hipache_service = App::PocketPaas::Service->get('pps_hipache');
+    my $hipache_service = get_service( $config, 'pps_hipache' );
     if ( !$hipache_service ) {
         WARN("PocketPaas Hipache service not found!!");
         return;

@@ -6,6 +6,8 @@ use Log::Log4perl qw(:easy);
 use Readonly;
 use YAML qw(LoadFile);
 
+use Sub::Exporter -setup => { exports => [ qw(next_tag load_app_config) ] };
+
 Readonly my $POCKET_PAAS_CONFIG => 'pps.yml';
 
 sub next_tag {
@@ -46,9 +48,9 @@ sub walk_dir {
 }
 
 sub load_app_config {
-    my ( $class, $path, $options ) = @_;
+    my ( $config, $path, $options ) = @_;
 
-    my $config = {};
+    my $app_config = {};
 
     my $loaded_config = {};
     if ( -d $path ) {
@@ -70,17 +72,18 @@ sub load_app_config {
     # TODO validate config
 
     # there is no reset_cache or no_cache in the app yaml file
-    $config->{no_cache}    = $options->{no_cache};
-    $config->{reset_cache} = $options->{reset_cache};
+    $app_config->{no_cache}    = $options->{no_cache};
+    $app_config->{reset_cache} = $options->{reset_cache};
 
-    $config->{name} = $options->{name} || $loaded_config->{name};
+    $app_config->{name} = $options->{name} || $loaded_config->{name};
 
     # TODO consider joining two lists of services if both command line and
     # config file services were specified
     if ( $options->{service} ) {
         foreach my $service_spec ( @{ $options->{service} } ) {
             my ( $name, $type ) = split( /:/, $service_spec );
-            push @{ $config->{services} }, { name => $name, type => $type };
+            push @{ $app_config->{services} },
+                { name => $name, type => $type };
         }
     }
     else {
@@ -89,13 +92,13 @@ sub load_app_config {
                 my ($name) = keys %$service;
                 my $type = $service->{$name};
 
-                push @{ $config->{services} },
+                push @{ $app_config->{services} },
                     { name => $name, type => $type };
             }
         }
     }
 
-    return $config;
+    return $app_config;
 }
 
 sub docker_status_to_internal {
