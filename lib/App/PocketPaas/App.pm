@@ -3,11 +3,16 @@ package App::PocketPaas::App;
 use strict;
 use warnings;
 
+use App::PocketPaas::Docker;
+use App::PocketPaas::Hipache;
+use App::PocketPaas::Model::App;
+use App::PocketPaas::Util;
+
+use File::Path qw(make_path);
 use File::Slurp qw(write_file);
 use File::Temp qw(tempdir);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
-use File::Path qw(make_path);
 
 sub push_app {
     my ( $class, $app_config ) = @_;

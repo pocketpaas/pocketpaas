@@ -4,10 +4,10 @@ use strict;
 use warnings;
 
 use DirHandle;
+use File::Path qw(mkpath);
 use File::Slurp qw(read_file write_file);
 use JSON;
 use Log::Log4perl qw(:easy);
-use File::Path qw(mkpath);
 
 my $json = JSON->new->pretty;
 

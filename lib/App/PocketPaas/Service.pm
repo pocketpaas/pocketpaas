@@ -4,15 +4,15 @@ use strict;
 use warnings;
 
 use App::PocketPaas::Docker;
-use App::PocketPaas::Notes;
 use App::PocketPaas::Model::Service;
 use App::PocketPaas::Model::ServiceBase;
+use App::PocketPaas::Notes;
 
+use File::Path qw(mkpath);
+use IPC::Run3;
 use List::MoreUtils qw(any);
 use Log::Log4perl qw(:easy);
 use Readonly;
-use IPC::Run3;
-use File::Path qw(mkpath);
 
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
     mysql   => 'https://github.com/pocketpaas/servicepack_mysql.git',

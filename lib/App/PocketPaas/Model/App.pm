@@ -68,7 +68,7 @@ sub load {
         return;
     }
 
-    return App::PocketPaas::Model::App->new(
+    return $class->new(
         {   name       => $name,
             containers => \@containers,
             images     => [ sort { $b->{tag} cmp $a->{tag} } @images ],

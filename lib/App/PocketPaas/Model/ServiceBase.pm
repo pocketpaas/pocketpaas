@@ -28,7 +28,7 @@ sub load {
         return;
     }
 
-    return App::PocketPaas::Model::ServiceBase->new(
+    return $class->new(
         {   type => $type,
             repo => $repo,
             tags => $tags,

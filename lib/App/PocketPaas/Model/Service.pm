@@ -50,7 +50,7 @@ sub load {
     my $uc_name = uc($name);
     $env =~ s/^/POCKETPAAS_${uc_name}_/gms;
 
-    return App::PocketPaas::Model::Service->new(
+    return $class->new(
         {   name         => $name,
             type         => $type,
             image        => $image,

@@ -2,11 +2,11 @@ package App::PocketPaas::Docker;
 
 use Cwd;
 use IPC::Run3;
-use LWP::UserAgent;
 use JSON;
 use Log::Log4perl qw(:easy);
-use Readonly;
 use LWP::Protocol::http::SocketUnixAlt;
+use LWP::UserAgent;
+use Readonly;
 
 Readonly my @DOCKER => qw(docker);
 

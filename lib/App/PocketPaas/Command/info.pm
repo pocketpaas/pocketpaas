@@ -9,6 +9,8 @@ use warnings;
 use App::PocketPaas;
 use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
+use App::PocketPaas::Notes;
+use App::PocketPaas::Util;
 
 use Cwd;
 use Log::Log4perl qw(:easy);

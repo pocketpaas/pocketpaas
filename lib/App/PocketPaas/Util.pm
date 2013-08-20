@@ -6,9 +6,6 @@ use Log::Log4perl qw(:easy);
 use Readonly;
 use YAML qw(LoadFile);
 
-use App::PocketPaas::Docker;
-use App::PocketPaas::Model::Service;
-
 Readonly my $POCKET_PAAS_CONFIG => 'pps.yml';
 
 sub next_tag {

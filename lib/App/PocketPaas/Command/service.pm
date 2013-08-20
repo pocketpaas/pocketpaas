@@ -9,9 +9,9 @@ use warnings;
 use App::PocketPaas;
 use App::PocketPaas::Service;
 
+use IPC::Run3;
 use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
-use IPC::Run3;
 
 sub opt_spec {
     return ( [ "name|n=s", "service name" ], [ "type|t=s", "service type" ],
