@@ -9,7 +9,7 @@ use App::PocketPaas::Service qw(get_service);
 use Log::Log4perl qw(:easy);
 use Redis;
 
-use Sub::Exporter -setup => { exports => [ qw(add_hipache_app) ] };
+use Sub::Exporter -setup => { exports => [qw(add_hipache_app)] };
 
 sub add_hipache_app {
     my ( $config, $app_config, $docker_id ) = @_;

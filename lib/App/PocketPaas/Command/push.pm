@@ -6,9 +6,10 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas;
-use App::PocketPaas::App;
-use App::PocketPaas::Util;
+use App::PocketPaas::App qw(push_app);
+use App::PocketPaas::Config qw(get_config);
+use App::PocketPaas::Core qw(setup_pocketpaas);
+use App::PocketPaas::Util qw(load_app_config);
 
 use Cwd;
 use File::Slurp qw(write_file);
@@ -34,14 +35,15 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    App::PocketPaas->setup();
+    my $config = get_config();
+    setup_pocketpaas($config);
 
-    my $app_config = App::PocketPaas::Util->load_app_config( getcwd, $opt );
+    my $app_config = load_app_config( $config, getcwd, $opt );
 
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    App::PocketPaas::App->push_app($app_config);
+    push_app( $config, $app_config );
 }
 
 1;

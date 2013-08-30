@@ -6,7 +6,8 @@ use warnings;
 use App::PocketPaas::Docker;
 use App::PocketPaas::Hipache qw(add_hipache_app);
 use App::PocketPaas::Model::App;
-use App::PocketPaas::Util;
+use App::PocketPaas::Notes qw(add_note delete_note);
+use App::PocketPaas::Util qw(next_tag);
 
 use File::Path qw(make_path);
 use File::Slurp qw(write_file);
@@ -15,10 +16,10 @@ use IPC::Run3;
 use Log::Log4perl qw(:easy);
 
 use Sub::Exporter -setup =>
-    { exports => [ qw(push_app start_app stop_app destroy_app) ] };
+    { exports => [qw(push_app start_app stop_app destroy_app)] };
 
 sub push_app {
-    my ( $class, $app_config ) = @_;
+    my ( $config, $app_config ) = @_;
 
     my $app_name = $app_config->{name};
 
@@ -38,7 +39,7 @@ sub push_app {
 
     prepare_app_build( $app_build_dir, $app_name );
 
-    my $tag = App::PocketPaas::Util::next_tag($app);
+    my $tag = next_tag( $config, $app );
 
     if (App::PocketPaas::Docker->build(
             $app_build_dir, "pocketapp/$app_name:temp-$tag"
@@ -90,7 +91,7 @@ sub push_app {
         return;
     }
 
-    $class->start_app( $app_config, $tag, $app );
+    start_app( $config, $app_config, $tag, $app );
 
     App::PocketPaas::Docker->rmi("pocketapp/$app_name:temp-$tag");
 
@@ -146,7 +147,8 @@ sub start_app {
     # add to hipache
     add_hipache_app( $config, $app_config, $docker_id );
 
-    App::PocketPaas::Notes->add_note(
+    add_note(
+        $config,
         "app_$app_name",
         {   services  => $service_names,
             name      => $app_name,
@@ -172,7 +174,7 @@ sub start_app {
 }
 
 sub stop_app {
-    my ( $class, $app_config, $app ) = @_;
+    my ( $config, $app_config, $app ) = @_;
 
     my $app_name = $app_config->{name};
 
@@ -187,7 +189,7 @@ sub stop_app {
 }
 
 sub destroy_app {
-    my ( $class, $app_config, $app ) = @_;
+    my ( $config, $app_config, $app ) = @_;
 
     my $app_name = $app_config->{name};
 
@@ -206,7 +208,7 @@ sub destroy_app {
             "pocketapp/$app_name:" . $image->run_tag() );
     }
 
-    App::PocketPaas::Notes->delete_note("app_$app_name");
+    delete_note( $config, "app_$app_name" );
 }
 
 sub _generate_app_tarball {

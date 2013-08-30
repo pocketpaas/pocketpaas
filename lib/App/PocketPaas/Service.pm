@@ -6,7 +6,7 @@ use warnings;
 use App::PocketPaas::Docker;
 use App::PocketPaas::Model::Service;
 use App::PocketPaas::Model::ServiceBase;
-use App::PocketPaas::Notes;
+use App::PocketPaas::Notes qw(add_note get_note query_notes);
 
 use File::Path qw(mkpath);
 use IPC::Run3;
@@ -27,15 +27,15 @@ Readonly my %SERVICE_TYPE_TO_GIT_URL => (
 );
 
 sub provision_service {
-    my ( $class, $name, $type, $options ) = @_;
+    my ( $config, $name, $type, $options ) = @_;
 
     my $created = 1;
-    my $service = get_service( $class, $name );
+    my $service = get_service( $config, $name );
 
     if ($service) {
 
         # start service if not running
-        start_service( $class, $name );
+        start_service( $config, $name );
 
         $created = 0;
     }
@@ -95,7 +95,8 @@ sub provision_service {
         # TODO check for !$docker_id and skip the note
 
         # record information about the new service
-        App::PocketPaas::Notes->add_note(
+        add_note(
+            $config,
             "service_$name",
             {   docker_id    => $docker_id,
                 env_template => $output,
@@ -107,18 +108,19 @@ sub provision_service {
     }
 
     # load service again to have latest env
-    $service = get_service( $class, $name );
+    $service = get_service( $config, $name );
 
     return wantarray ? ( $service, $created ) : $service;
 }
 
 sub stop_service {
-    my ( $class, $name ) = @_;
+    my ( $config, $name ) = @_;
 
-    my $service = get_service( $class, $name );
+    my $service = get_service( $config, $name );
 
     if ($service) {
-        my $app_notes = App::PocketPaas::Notes->query_notes(
+        my $app_notes = query_notes(
+            $config,
             sub {
                 my ( $key, $contents ) = @_;
 
@@ -150,9 +152,9 @@ sub stop_service {
 }
 
 sub start_service {
-    my ( $class, $name ) = @_;
+    my ( $config, $name ) = @_;
 
-    my $service = get_service( $class, $name );
+    my $service = get_service( $config, $name );
 
     if ($service) {
         if ( $service->status ne 'running' ) {
@@ -168,10 +170,10 @@ sub start_service {
 }
 
 sub get_service {
-    my ( $class, $name ) = @_;
+    my ( $config, $name ) = @_;
 
     # get type, docker_id from notes
-    my $note = App::PocketPaas::Notes->get_note("service_$name");
+    my $note = get_note( $config, "service_$name" );
     if ( scalar( keys(%$note) ) == 0 ) {
         return;
     }
@@ -188,10 +190,11 @@ sub get_service {
 }
 
 sub get_all_services {
-    my ($class) = @_;
+    my ($config) = @_;
 
     # get type, docker_id from notes
-    my $service_notes = App::PocketPaas::Notes->query_notes(
+    my $service_notes = query_notes(
+        $config,
         sub {
             my ( $key, $contents ) = @_;
             return $key =~ /^service_/;

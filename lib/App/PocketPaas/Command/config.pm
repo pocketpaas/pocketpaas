@@ -6,7 +6,7 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas::Config;
+use App::PocketPaas::Config qw(get_config set_config unset_config);
 
 use YAML qw(Dump);
 
@@ -22,16 +22,19 @@ sub execute {
 
     my $key;
     if ( $key = $opt->{'unset'} ) {
-        App::PocketPaas::Config->unset_config($key);
+        unset_config($key);
     }
     elsif ( $key = $opt->{'set'} ) {
-        App::PocketPaas::Config->set_config( $key, $args->[0] );
+        set_config( $key, $args->[0] );
     }
     elsif ( scalar(@$args) == 2 ) {
-        App::PocketPaas::Config->set_config( $args->[0], $args->[1] );
+        set_config( $args->[0], $args->[1] );
+    }
+    elsif ( scalar(@$args) == 1 ) {
+        printf "%s\n", get_config( $args->[0] );
     }
     elsif ( scalar(@$args) == 0 ) {
-        print Dump( App::PocketPaas::Config->get_config() );
+        print Dump( get_config() );
     }
 
 }

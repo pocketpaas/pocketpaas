@@ -6,12 +6,12 @@ use Log::Log4perl qw(:easy);
 use Readonly;
 use YAML qw(LoadFile);
 
-use Sub::Exporter -setup => { exports => [ qw(next_tag load_app_config) ] };
+use Sub::Exporter -setup => { exports => [qw(next_tag load_app_config)] };
 
 Readonly my $POCKET_PAAS_CONFIG => 'pps.yml';
 
 sub next_tag {
-    my $app = shift;
+    my ( $config, $app ) = @_;
 
     my $tag;
     my $now = DateTime->now();
@@ -35,7 +35,7 @@ sub next_tag {
 }
 
 sub walk_dir {
-    my ( $class, $dir, $handler ) = @_;
+    my ( $config, $dir, $handler ) = @_;
     if ( -d $dir ) {
         $d = DirHandle->new($dir);
         if ( defined $d ) {
@@ -102,7 +102,7 @@ sub load_app_config {
 }
 
 sub docker_status_to_internal {
-    my ( $class, $docker_status ) = @_;
+    my ( $config, $docker_status ) = @_;
 
     my $status;
 

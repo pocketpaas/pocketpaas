@@ -9,10 +9,13 @@ use File::Slurp qw(read_file write_file);
 use JSON;
 use Log::Log4perl qw(:easy);
 
+use Sub::Exporter -setup =>
+    { exports => [qw(add_note get_note delete_note query_notes)] };
+
 my $json = JSON->new->pretty;
 
 sub add_note {
-    my ( $class, $key, $contents ) = @_;
+    my ( $config, $key, $contents ) = @_;
 
     my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
     _ensure_notes_dir_exists($notes_dir);
@@ -21,7 +24,7 @@ sub add_note {
 }
 
 sub get_note {
-    my ( $class, $key ) = @_;
+    my ( $config, $key ) = @_;
 
     my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
     _ensure_notes_dir_exists($notes_dir);
@@ -35,7 +38,7 @@ sub get_note {
 }
 
 sub delete_note {
-    my ( $class, $key ) = @_;
+    my ( $config, $key ) = @_;
 
     my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
     _ensure_notes_dir_exists($notes_dir);
@@ -47,7 +50,7 @@ sub delete_note {
 }
 
 sub query_notes {
-    my ( $class, $query_sub ) = @_;
+    my ( $config, $query_sub ) = @_;
 
     my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
     _ensure_notes_dir_exists($notes_dir);
