@@ -1,3 +1,4 @@
 .carton/
 local/
 pps.packed
+.vagrant/
