@@ -79,8 +79,11 @@ sub run {
 
         DEBUG("run output: $output");
 
-        if ( length($output) == 12 ) {
-            return $output;
+        # filter out warnings
+        my @lines = grep { $_ !~ /WARNING/ } split( /\n/, $output );
+
+        if ( scalar(@lines) == 1 && length( $lines[0] ) == 12 ) {
+            return $lines[0];
         }
         else {
             WARN("run failed for image $image");

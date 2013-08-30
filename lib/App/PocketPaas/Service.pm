@@ -92,6 +92,8 @@ sub provision_service {
             = App::PocketPaas::Docker->run( $service_repo,
             { daemon => 1, ports => $options->{ports} } );
 
+        # TODO check for !$docker_id and skip the note
+
         # record information about the new service
         App::PocketPaas::Notes->add_note(
             "service_$name",
