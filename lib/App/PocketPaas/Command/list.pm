@@ -6,7 +6,8 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas;
+use App::PocketPaas::Core qw(setup_pocketpaas);
+use App::PocketPaas::Config qw(get_config);
 use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
 
@@ -20,7 +21,8 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    App::PocketPaas->setup();
+    my $config = get_config();
+    setup_pocketpaas($config);
 
     my $app_names
         = App::PocketPaas::Model::App->load_names(

@@ -6,11 +6,12 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas;
+use App::PocketPaas::Config qw(get_config);
+use App::PocketPaas::Core qw(setup_pocketpaas);
 use App::PocketPaas::Docker;
 use App::PocketPaas::Model::App;
-use App::PocketPaas::Notes;
-use App::PocketPaas::Util;
+use App::PocketPaas::Notes qw(get_note);
+use App::PocketPaas::Util qw(load_app_config);
 
 use Cwd;
 use Log::Log4perl qw(:easy);
@@ -27,9 +28,10 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    App::PocketPaas->setup();
+    my $config = get_config();
+    setup_pocketpaas($config);
 
-    my $app_config = App::PocketPaas::Util->load_app_config( getcwd, $opt );
+    my $app_config = load_app_config( $config, getcwd, $opt );
 
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
@@ -62,7 +64,7 @@ sub execute {
         $status->{state} = 'stopped';
     }
 
-    my $note = App::PocketPaas::Notes->get_note("app_$app_name");
+    my $note = get_note( $config, "app_$app_name" );
     $status->{services} = $note->{services};
 
     print Dump($status);
