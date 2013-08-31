@@ -8,7 +8,7 @@ use warnings;
 
 use App::PocketPaas::Core qw(setup_pocketpaas);
 use App::PocketPaas::Config qw(get_config);
-use App::PocketPaas::Docker;
+use App::PocketPaas::Docker qw(docker_containers docker_images);
 use App::PocketPaas::Model::App;
 
 use Log::Log4perl qw(:easy);
@@ -26,8 +26,8 @@ sub execute {
 
     my $app_names
         = App::PocketPaas::Model::App->load_names(
-        App::PocketPaas::Docker->containers( { all => 1 } ),
-        App::PocketPaas::Docker->images() );
+        docker_containers( $config, { all => 1 } ),
+        docker_images($config) );
 
     print Dump($app_names);
 }

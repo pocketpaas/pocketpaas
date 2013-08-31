@@ -3,7 +3,7 @@ package App::PocketPaas::Hipache;
 use strict;
 use warnings;
 
-use App::PocketPaas::Docker;
+use App::PocketPaas::Docker qw(docker_inspect);
 use App::PocketPaas::Service qw(get_service);
 
 use Log::Log4perl qw(:easy);
@@ -19,7 +19,7 @@ sub add_hipache_app {
     # TODO make this configurable
     my $domain = 'pocketpaas.com';
 
-    my $container_info = App::PocketPaas::Docker->inspect($docker_id);
+    my $container_info = docker_inspect( $config, $docker_id );
     my $app_ip_address = $container_info->{NetworkSettings}{IPAddress};
     my $app_port       = 5000;
     DEBUG("Mapping $app_config->{name}.$domain to $app_ip_address:$app_port");

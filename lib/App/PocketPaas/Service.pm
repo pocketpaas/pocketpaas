@@ -3,7 +3,8 @@ package App::PocketPaas::Service;
 use strict;
 use warnings;
 
-use App::PocketPaas::Docker;
+use App::PocketPaas::Docker
+    qw(docker_images docker_inspect docker_run docker_start docker_stop);
 use App::PocketPaas::Model::Service;
 use App::PocketPaas::Model::ServiceBase;
 use App::PocketPaas::Notes qw(add_note get_note query_notes);
@@ -59,7 +60,7 @@ sub provision_service {
 
         # check if base exists already
         my $service_base = App::PocketPaas::Model::ServiceBase->load( $type,
-            App::PocketPaas::Docker->images() );
+            docker_images($config) );
 
         # TODO don't duplicate the prefix here and in ServiceBase
         my $service_repo_base = "pocketbase/$type";
@@ -72,7 +73,7 @@ sub provision_service {
             ];
 
             $service_base = App::PocketPaas::Model::ServiceBase->load( $type,
-                App::PocketPaas::Docker->images() );
+                docker_images($config) );
         }
 
         # create setup image and capture env variables
@@ -89,7 +90,7 @@ sub provision_service {
 
         # start the service
         my $docker_id
-            = App::PocketPaas::Docker->run( $service_repo,
+            = docker_run( $config, $service_repo,
             { daemon => 1, ports => $options->{ports} } );
 
         # TODO check for !$docker_id and skip the note
@@ -134,7 +135,7 @@ sub stop_service {
 
         if ( scalar @$app_names == 0 ) {
             if ( $service->status ne 'stopped' ) {
-                App::PocketPaas::Docker->stop( $service->docker_id );
+                docker_stop( $config, $service->docker_id );
                 INFO("Service '$name' stopped.");
             }
         }
@@ -158,7 +159,7 @@ sub start_service {
 
     if ($service) {
         if ( $service->status ne 'running' ) {
-            App::PocketPaas::Docker->start( $service->docker_id );
+            docker_start( $config, $service->docker_id );
             INFO("Service '$name' started.");
         }
 
@@ -181,7 +182,7 @@ sub get_service {
     my $type           = $note->{type};
     my $docker_id      = $note->{docker_id};
     my $env_template   = $note->{env_template};
-    my $container_info = App::PocketPaas::Docker->inspect($docker_id);
+    my $container_info = docker_inspect( $config, $docker_id );
 
     # TODO handle empty container info
 
@@ -211,7 +212,7 @@ sub get_all_services {
         my $type           = $contents->{type};
         my $docker_id      = $contents->{docker_id};
         my $env_template   = $contents->{env_template};
-        my $container_info = App::PocketPaas::Docker->inspect($docker_id);
+        my $container_info = docker_inspect( $config, $docker_id );
 
         push @$services,
             App::PocketPaas::Model::Service->load( $name, $type,

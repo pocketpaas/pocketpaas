@@ -3,7 +3,10 @@ package App::PocketPaas::App;
 use strict;
 use warnings;
 
-use App::PocketPaas::Docker;
+use App::PocketPaas::Docker qw(
+    docker_attach docker_build docker_commit docker_containers docker_images
+    docker_rm docker_rmi docker_run docker_stop docker_wait
+);
 use App::PocketPaas::Hipache qw(add_hipache_app);
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Notes qw(add_note delete_note);
@@ -25,8 +28,8 @@ sub push_app {
 
     my $app = App::PocketPaas::Model::App->load(
         $app_name,
-        App::PocketPaas::Docker->containers( { all => 1 } ),
-        App::PocketPaas::Docker->images()
+        docker_containers( $config, { all => 1 } ),
+        docker_images( $config, )
     );
 
     INFO("Pushing $app_name");
@@ -41,15 +44,15 @@ sub push_app {
 
     my $tag = next_tag( $config, $app );
 
-    if (App::PocketPaas::Docker->build(
-            $app_build_dir, "pocketapp/$app_name:temp-$tag"
+    if (docker_build(
+            $config, $app_build_dir, "pocketapp/$app_name:temp-$tag"
         )
         )
     {
         INFO("Application built successfully");
     }
     else {
-        App::PocketPaas::Docker->rmi("pocketapp/$app_name:temp-$tag");
+        docker_rmi( $config, "pocketapp/$app_name:temp-$tag" );
         return;
     }
 
@@ -66,7 +69,8 @@ sub push_app {
     }
 
     INFO("Building application");
-    if (my $build_container_id = App::PocketPaas::Docker->run(
+    if (my $build_container_id = docker_run(
+            $config,
             "pocketapp/$app_name:temp-$tag",
             {   daemon  => 1,
                 command => '/build/builder',
@@ -76,10 +80,10 @@ sub push_app {
         )
     {
         INFO("App build container: $build_container_id");
-        App::PocketPaas::Docker->attach($build_container_id);
+        docker_attach( $config, $build_container_id );
 
-        if ( App::PocketPaas::Docker->wait($build_container_id) ) {
-            App::PocketPaas::Docker->commit( $build_container_id,
+        if ( docker_wait( $config, $build_container_id ) ) {
+            docker_commit( $config, $build_container_id,
                 "pocketapp/$app_name", "build-$tag" );
         }
         else {
@@ -93,7 +97,7 @@ sub push_app {
 
     start_app( $config, $app_config, $tag, $app );
 
-    App::PocketPaas::Docker->rmi("pocketapp/$app_name:temp-$tag");
+    docker_rmi( $config, "pocketapp/$app_name:temp-$tag" );
 
 }
 
@@ -126,8 +130,8 @@ sub start_app {
 
     prepare_run_build( $app_run_build_dir, $app_name, $tag, $service_env );
 
-    if (!App::PocketPaas::Docker->build(
-            $app_run_build_dir, "pocketapp/$app_name:run-$tag"
+    if (!docker_build(
+            $config, $app_run_build_dir, "pocketapp/$app_name:run-$tag"
         )
         )
     {
@@ -137,7 +141,7 @@ sub start_app {
     # now start it up (-:
     INFO("Starting application");
     my $docker_id
-        = App::PocketPaas::Docker->run( "pocketapp/$app_name:run-$tag",
+        = docker_run( $config, "pocketapp/$app_name:run-$tag",
         { daemon => 1 } );
 
     if ( !$docker_id ) {
@@ -161,9 +165,9 @@ sub start_app {
         INFO("Stopping previous containers");
         foreach my $container ( @{ $app->containers() } ) {
             if ( $container->status() eq 'running' ) {
-                App::PocketPaas::Docker->stop( $container->docker_id() );
+                docker_stop( $config, $container->docker_id() );
             }
-            App::PocketPaas::Docker->rm( $container->docker_id() );
+            docker_rm( $config, $container->docker_id() );
         }
     }
 
@@ -181,7 +185,7 @@ sub stop_app {
     INFO("Stopping running containers");
     foreach my $container ( @{ $app->containers() } ) {
         if ( $container->status() eq 'running' ) {
-            App::PocketPaas::Docker->stop( $container->docker_id() );
+            docker_stop( $config, $container->docker_id() );
         }
     }
 
@@ -196,16 +200,14 @@ sub destroy_app {
     INFO("Stopping running containers");
     foreach my $container ( @{ $app->containers() } ) {
         if ( $container->status() eq 'running' ) {
-            App::PocketPaas::Docker->stop( $container->docker_id() );
+            docker_stop( $config, $container->docker_id() );
         }
-        App::PocketPaas::Docker->rm( $container->docker_id() );
+        docker_rm( $config, $container->docker_id() );
     }
 
     foreach my $image ( @{ $app->images() } ) {
-        App::PocketPaas::Docker->rmi(
-            "pocketapp/$app_name:" . $image->build_tag() );
-        App::PocketPaas::Docker->rmi(
-            "pocketapp/$app_name:" . $image->run_tag() );
+        docker_rmi( $config, "pocketapp/$app_name:" . $image->build_tag() );
+        docker_rmi( $config, "pocketapp/$app_name:" . $image->run_tag() );
     }
 
     delete_note( $config, "app_$app_name" );

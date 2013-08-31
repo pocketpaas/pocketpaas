@@ -8,12 +8,18 @@ use LWP::Protocol::http::SocketUnixAlt;
 use LWP::UserAgent;
 use Readonly;
 
+use Sub::Exporter -setup => {
+    exports => [
+        qw(docker_containers docker_images docker_inspect docker_rmi docker_rm docker_start docker_stop docker_attach docker_run docker_commit docker_wait docker_build)
+    ]
+};
+
 Readonly my @DOCKER => qw(docker);
 
 LWP::Protocol::implementor( http => 'LWP::Protocol::http::SocketUnixAlt' );
 
-sub build {
-    my ( $class, $directory, $tag ) = @_;
+sub docker_build {
+    my ( $config, $directory, $tag ) = @_;
 
     my $dir_save = getcwd;
 
@@ -34,8 +40,8 @@ sub build {
     return !$rc;
 }
 
-sub wait {
-    my ( $class, $container ) = @_;
+sub docker_wait {
+    my ( $config, $container ) = @_;
 
     run3 [ @DOCKER, qw(wait), $container ], \undef, \undef, \undef;
 
@@ -44,15 +50,15 @@ sub wait {
     return !$rc;
 }
 
-sub commit {
-    my $class = shift;
-    my @args  = @_;
+sub docker_commit {
+    my $config = shift;
+    my @args   = @_;
 
     run3 [ @DOCKER, qw(commit), @args ];
 }
 
-sub run {
-    my ( $class, $image, $options ) = @_;
+sub docker_run {
+    my ( $config, $image, $options ) = @_;
 
     my @command;
     if ( $options->{command} ) {
@@ -96,16 +102,16 @@ sub run {
     }
 }
 
-sub attach {
-    my ( $class, $container ) = @_;
+sub docker_attach {
+    my ( $config, $container ) = @_;
 
     my @run_cmd = ( @DOCKER, qw(attach), $container );
 
     run3 \@run_cmd;
 }
 
-sub stop {
-    my ( $class, $container_id ) = @_;
+sub docker_stop {
+    my ( $config, $container_id ) = @_;
 
     my @run_cmd = ( @DOCKER, qw(stop), $container_id );
 
@@ -118,8 +124,8 @@ sub stop {
     return !$rc;
 }
 
-sub start {
-    my ( $class, $container_id ) = @_;
+sub docker_start {
+    my ( $config, $container_id ) = @_;
 
     my @run_cmd = ( @DOCKER, qw(start), $container_id );
 
@@ -132,8 +138,8 @@ sub start {
     return !$rc;
 }
 
-sub rm {
-    my ( $class, $container_id ) = @_;
+sub docker_rm {
+    my ( $config, $container_id ) = @_;
 
     my @run_cmd = ( @DOCKER, qw(rm), $container_id );
 
@@ -146,8 +152,8 @@ sub rm {
     return !$rc;
 }
 
-sub rmi {
-    my ( $class, $image ) = @_;
+sub docker_rmi {
+    my ( $config, $image ) = @_;
 
     my @run_cmd = ( @DOCKER, qw(rmi), $image );
 
@@ -160,24 +166,24 @@ sub rmi {
     return !$rc;
 }
 
-sub containers {
-    my ( $class, $args ) = @_;
+sub docker_containers {
+    my ( $config, $args ) = @_;
 
-    return $class->get( '/containers/json' . _args($args) );
+    return _get( $config, '/containers/json' . _args($args) );
 }
 
-sub images {
-    my $class = shift;
-    return $class->get('/images/json');
+sub docker_images {
+    my $config = shift;
+    return _get( $config, '/images/json' );
 }
 
-sub inspect {
-    my ( $class, $container_id ) = @_;
-    return $class->get("/containers/$container_id/json");
+sub docker_inspect {
+    my ( $config, $container_id ) = @_;
+    return _get( $config, "/containers/$container_id/json" );
 }
 
-sub get {
-    my ( $class, $uri ) = @_;
+sub _get {
+    my ( $config, $uri ) = @_;
 
     my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
