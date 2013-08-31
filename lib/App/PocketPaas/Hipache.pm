@@ -16,8 +16,7 @@ sub add_hipache_app {
 
     INFO("Putting new application into hipache proxy");
 
-    # TODO make this configurable
-    my $domain = 'pocketpaas.com';
+    my $domain = $config->{domain};
 
     my $container_info = docker_inspect( $config, $docker_id );
     my $app_ip_address = $container_info->{NetworkSettings}{IPAddress};

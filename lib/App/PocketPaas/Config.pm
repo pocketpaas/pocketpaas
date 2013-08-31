@@ -12,7 +12,11 @@ use Readonly;
 use Sub::Exporter -setup =>
     { exports => [qw(get_config set_config unset_config)] };
 
-Readonly my $DEFAULT_BASE_DOMAIN          => domainname();
+# default domain is either something that can be used with dnsmasq (in vagrant)
+# or the domainname of the server
+Readonly my $DEFAULT_BASE_DOMAIN => $ENV{USER} eq 'vagrant'
+    ? 'pocketpaas.dev'
+    : domainname();
 Readonly my $DEFAULT_BASE_DIR             => "$ENV{HOME}/.pocketpaas";
 Readonly my $DEFAULT_APP_IMAGE_PREFIX     => 'pocketapp';
 Readonly my $DEFAULT_BASE_IMAGE_PREFIX    => 'pocketbase';
