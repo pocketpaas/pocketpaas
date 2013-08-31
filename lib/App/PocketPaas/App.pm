@@ -10,6 +10,7 @@ use App::PocketPaas::Docker qw(
 use App::PocketPaas::Hipache qw(add_hipache_app);
 use App::PocketPaas::Model::App;
 use App::PocketPaas::Notes qw(add_note delete_note);
+use App::PocketPaas::Service qw(provision_service);
 use App::PocketPaas::Util qw(next_tag);
 
 use File::Path qw(make_path);
@@ -121,8 +122,7 @@ sub start_app {
             my $type = $service->{type};
 
             # TODO add support for a git url as the type
-            $service
-                = App::PocketPaas::Service->provision_service( $name, $type );
+            $service = provision_service( $config, $name, $type );
 
             $service_env .= $service->env();
 
