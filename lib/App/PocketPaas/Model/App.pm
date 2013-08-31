@@ -12,12 +12,13 @@ has containers => ( is => 'ro' );
 has images => ( is => 'ro' );
 
 sub load {
-    my ( $class, $name, $docker_containers, $docker_images ) = @_;
+    my ( $class, $config, $name, $docker_containers, $docker_images ) = @_;
 
     my ( @images, @containers );
 
     foreach my $docker_container (@$docker_containers) {
-        if ( $docker_container->{Image} =~ m{^pocketapp/$name:run-([\d-]+)$} )
+        if ( $docker_container->{Image}
+            =~ m{^$config->{app_image_prefix}/$name:run-([\d-]+)$} )
         {
             my $tag           = $1;
             my $docker_status = $docker_container->{Status};
@@ -47,7 +48,8 @@ sub load {
     my $potential_tags = {};
     foreach my $docker_image (@$docker_images) {
         if ( defined( $docker_image->{Repository} )
-            && $docker_image->{Repository} eq "pocketapp/$name" )
+            && $docker_image->{Repository} eq
+            "$config->{app_image_prefix}/$name" )
         {
             my ( $type, $tag )
                 = $docker_image->{Tag} =~ m{^(build|run|temp)-([\d-]+)$};
@@ -77,13 +79,13 @@ sub load {
 }
 
 sub load_names {
-    my ( $class, $docker_containers, $docker_images ) = @_;
+    my ( $class, $config, $docker_containers, $docker_images ) = @_;
 
     my $apps = {};
     foreach my $docker_container (@$docker_containers) {
         if ( my ($app_name)
             = $docker_container->{Image}
-            =~ m{^pocketapp/([^:]+):run-[\d-]+$} )
+            =~ m{^$config->{app_image_prefix}/([^:]+):run-[\d-]+$} )
         {
             $apps->{$app_name}++;
         }
@@ -92,7 +94,8 @@ sub load_names {
         next if !defined( $docker_image->{Repository} );
 
         if ( my ($app_name)
-            = $docker_image->{Repository} =~ m{pocketapp/([^:]+)} )
+            = $docker_image->{Repository}
+            =~ m{$config->{app_image_prefix}/([^:]+)} )
         {
             $apps->{$app_name}++;
         }

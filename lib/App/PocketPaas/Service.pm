@@ -59,11 +59,11 @@ sub provision_service {
         # TODO for other kinds of services (non-servicepack), don't use this
 
         # check if base exists already
-        my $service_base = App::PocketPaas::Model::ServiceBase->load( $type,
+        my $service_base
+            = App::PocketPaas::Model::ServiceBase->load( $config, $type,
             docker_images($config) );
 
-        # TODO don't duplicate the prefix here and in ServiceBase
-        my $service_repo_base = "pocketbase/$type";
+        my $service_repo_base = "$config->{base_image_prefix}/$type";
         if ( !$service_base ) {
 
             # build the base image
@@ -72,12 +72,13 @@ sub provision_service {
                 qw(-t),           $service_repo_base
             ];
 
-            $service_base = App::PocketPaas::Model::ServiceBase->load( $type,
+            $service_base
+                = App::PocketPaas::Model::ServiceBase->load( $config, $type,
                 docker_images($config) );
         }
 
         # create setup image and capture env variables
-        my $service_repo = "pocketsvc/$name";
+        my $service_repo = "$config->{svc_image_prefix}/$name";
         my $output;
         run3 [
             qw(svp setup -b), $service_clone_path,

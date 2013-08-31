@@ -36,7 +36,7 @@ sub execute {
         || die "Please provide an application name with --name\n";
 
     my $app
-        = App::PocketPaas::Model::App->load( $app_name,
+        = App::PocketPaas::Model::App->load( $config, $app_name,
         docker_containers( $config, { all => 1 } ),
         docker_images($config) );
 

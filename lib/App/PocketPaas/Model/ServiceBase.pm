@@ -10,15 +10,16 @@ has repo => ( is => 'ro' );
 has tags => ( is => 'ro' );
 
 sub load {
-    my ( $class, $type, $docker_images ) = @_;
+    my ( $class, $config, $type, $docker_images ) = @_;
 
-    my $repo = "pocketbase/$type";
+    my $repo = "$config->{base_image_prefix}/$type";
     my $tags = [];
 
     foreach my $docker_image (@$docker_images) {
 
         if ( defined( $docker_image->{Repository} )
-            && $docker_image->{Repository} eq "pocketbase/$type" )
+            && $docker_image->{Repository} eq
+            "$config->{base_image_prefix}/$type" )
         {
             push @$tags, $docker_image->{Tag};
         }

@@ -25,7 +25,7 @@ sub execute {
     setup_pocketpaas($config);
 
     my $app_names
-        = App::PocketPaas::Model::App->load_names(
+        = App::PocketPaas::Model::App->load_names( $config,
         docker_containers( $config, { all => 1 } ),
         docker_images($config) );
 

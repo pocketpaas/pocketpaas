@@ -27,7 +27,7 @@ sub push_app {
     my $app_name = $app_config->{name};
 
     my $app = App::PocketPaas::Model::App->load(
-        $app_name,
+        $config, $app_name,
         docker_containers( $config, { all => 1 } ),
         docker_images( $config, )
     );
@@ -40,19 +40,21 @@ sub push_app {
 
     _generate_app_tarball($app_build_dir);
 
-    prepare_app_build( $app_build_dir, $app_name );
+    prepare_app_build( $config, $app_build_dir, $app_name );
 
     my $tag = next_tag( $config, $app );
 
     if (docker_build(
-            $config, $app_build_dir, "pocketapp/$app_name:temp-$tag"
+            $config, $app_build_dir,
+            "$config->{app_image_prefix}/$app_name:temp-$tag"
         )
         )
     {
         INFO("Application built successfully");
     }
     else {
-        docker_rmi( $config, "pocketapp/$app_name:temp-$tag" );
+        docker_rmi( $config,
+            "$config->{app_image_prefix}/$app_name:temp-$tag" );
         return;
     }
 
@@ -71,7 +73,7 @@ sub push_app {
     INFO("Building application");
     if (my $build_container_id = docker_run(
             $config,
-            "pocketapp/$app_name:temp-$tag",
+            "$config->{app_image_prefix}/$app_name:temp-$tag",
             {   daemon  => 1,
                 command => '/build/builder',
                 %cache_volume_opts
@@ -84,7 +86,7 @@ sub push_app {
 
         if ( docker_wait( $config, $build_container_id ) ) {
             docker_commit( $config, $build_container_id,
-                "pocketapp/$app_name", "build-$tag" );
+                "$config->{app_image_prefix}/$app_name", "build-$tag" );
         }
         else {
             # TODO: clean up images
@@ -97,7 +99,7 @@ sub push_app {
 
     start_app( $config, $app_config, $tag, $app );
 
-    docker_rmi( $config, "pocketapp/$app_name:temp-$tag" );
+    docker_rmi( $config, "$config->{app_image_prefix}/$app_name:temp-$tag" );
 
 }
 
@@ -128,10 +130,12 @@ sub start_app {
         }
     }
 
-    prepare_run_build( $app_run_build_dir, $app_name, $tag, $service_env );
+    prepare_run_build( $config, $app_run_build_dir, $app_name, $tag,
+        $service_env );
 
     if (!docker_build(
-            $config, $app_run_build_dir, "pocketapp/$app_name:run-$tag"
+            $config, $app_run_build_dir,
+            "$config->{app_image_prefix}/$app_name:run-$tag"
         )
         )
     {
@@ -140,9 +144,11 @@ sub start_app {
 
     # now start it up (-:
     INFO("Starting application");
-    my $docker_id
-        = docker_run( $config, "pocketapp/$app_name:run-$tag",
-        { daemon => 1 } );
+    my $docker_id = docker_run(
+        $config,
+        "$config->{app_image_prefix}/$app_name:run-$tag",
+        { daemon => 1 }
+    );
 
     if ( !$docker_id ) {
         return;
@@ -206,8 +212,10 @@ sub destroy_app {
     }
 
     foreach my $image ( @{ $app->images() } ) {
-        docker_rmi( $config, "pocketapp/$app_name:" . $image->build_tag() );
-        docker_rmi( $config, "pocketapp/$app_name:" . $image->run_tag() );
+        docker_rmi( $config,
+            "$config->{app_image_prefix}/$app_name:" . $image->build_tag() );
+        docker_rmi( $config,
+            "$config->{app_image_prefix}/$app_name:" . $image->run_tag() );
     }
 
     delete_note( $config, "app_$app_name" );
@@ -227,7 +235,7 @@ sub _generate_app_tarball {
 }
 
 sub prepare_app_build {
-    my ( $dest_dir, $app_name ) = @_;
+    my ( $config, $dest_dir, $app_name ) = @_;
 
     write_file( "$dest_dir/Dockerfile", <<DOCKER);
 from    progrium/buildstep
@@ -236,14 +244,14 @@ DOCKER
 }
 
 sub prepare_run_build {
-    my ( $app_run_build_dir, $app_name, $tag, $service_env ) = @_;
+    my ( $config, $app_run_build_dir, $app_name, $tag, $service_env ) = @_;
 
     # TODO fix this to allow '=' in values
     $service_env =~ s/^/ENV /gmsi;
     $service_env =~ s/=/ /gmsi;
 
     write_file( "$app_run_build_dir/Dockerfile", <<DOCKER2);
-from    pocketapp/$app_name:build-$tag
+from    $config->{app_image_prefix}/$app_name:build-$tag
 env     PORT 5000
 env     POCKETPAAS true
 $service_env
