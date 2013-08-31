@@ -42,7 +42,7 @@ sub provision_service {
     }
     else {
 
-        my $svc_info_dir       = "$ENV{HOME}/.pocketpaas/service_info";
+        my $svc_info_dir       = "$config->{base_dir}/service_info";
         my $service_clone_path = "$svc_info_dir/$type";
 
         if ( !-e $svc_info_dir ) {

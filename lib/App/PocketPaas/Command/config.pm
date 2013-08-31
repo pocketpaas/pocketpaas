@@ -6,7 +6,8 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas::Config qw(get_config set_config unset_config);
+use App::PocketPaas::Config
+    qw(get_public_config get_config set_config unset_config);
 
 use YAML qw(Dump);
 
@@ -34,7 +35,7 @@ sub execute {
         printf "%s\n", get_config( $args->[0] );
     }
     elsif ( scalar(@$args) == 0 ) {
-        print Dump( get_config() );
+        print Dump( get_public_config() );
     }
 
 }

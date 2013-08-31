@@ -10,7 +10,7 @@ use Net::Domain qw(domainname);
 use Readonly;
 
 use Sub::Exporter -setup =>
-    { exports => [qw(get_config set_config unset_config)] };
+    { exports => [qw(get_public_config get_config set_config unset_config)] };
 
 # default domain is either something that can be used with dnsmasq (in vagrant)
 # or the domainname of the server
@@ -21,6 +21,16 @@ Readonly my $DEFAULT_BASE_DIR             => "$ENV{HOME}/.pocketpaas";
 Readonly my $DEFAULT_APP_IMAGE_PREFIX     => 'pocketapp';
 Readonly my $DEFAULT_BASE_IMAGE_PREFIX    => 'pocketbase';
 Readonly my $DEFAULT_SERVICE_IMAGE_PREFIX => 'pocketsvc';
+
+Readonly my @HIDDEN_KEYS => qw(base_dir);
+
+sub get_public_config {
+    my $config = get_config();
+
+    delete $config->{$_} foreach @HIDDEN_KEYS;
+
+    return $config;
+}
 
 sub get_config {
     my ($key) = @_;

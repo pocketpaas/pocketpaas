@@ -60,7 +60,7 @@ sub push_app {
 
     my %cache_volume_opts;
     if ( !$app_config->{'no_cache'} ) {
-        my $cache_dir = "$ENV{HOME}/.pocketpaas/cache/$app_name";
+        my $cache_dir = "$config->{base_dir}/cache/$app_name";
         if ( $app_config->{'reset_cache'} ) {
 
             # TODO: remove cache path, might be root owned

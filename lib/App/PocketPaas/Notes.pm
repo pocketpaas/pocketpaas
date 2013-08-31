@@ -17,7 +17,7 @@ my $json = JSON->new->pretty;
 sub add_note {
     my ( $config, $key, $contents ) = @_;
 
-    my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
+    my $notes_dir = "$config->{base_dir}/notes";
     _ensure_notes_dir_exists($notes_dir);
 
     write_file( "$notes_dir/$key.json", $json->encode($contents) );
@@ -26,7 +26,7 @@ sub add_note {
 sub get_note {
     my ( $config, $key ) = @_;
 
-    my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
+    my $notes_dir = "$config->{base_dir}/notes";
     _ensure_notes_dir_exists($notes_dir);
 
     my $note_file = "$notes_dir/$key.json";
@@ -40,7 +40,7 @@ sub get_note {
 sub delete_note {
     my ( $config, $key ) = @_;
 
-    my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
+    my $notes_dir = "$config->{base_dir}/notes";
     _ensure_notes_dir_exists($notes_dir);
 
     my $note_file = "$notes_dir/$key.json";
@@ -52,7 +52,7 @@ sub delete_note {
 sub query_notes {
     my ( $config, $query_sub ) = @_;
 
-    my $notes_dir = "$ENV{HOME}/.pocketpaas/notes";
+    my $notes_dir = "$config->{base_dir}/notes";
     _ensure_notes_dir_exists($notes_dir);
 
     my $matched_notes   = [];
