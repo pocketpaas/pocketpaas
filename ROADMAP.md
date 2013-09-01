@@ -2,11 +2,15 @@
 
 * Run applications as users, not root, inside containers
 * clean up old application images/containers
-* 2 or 3 more servicepacks, mongo, <strike>redis</strike>, rabbitmq, etc.
+* 2 or 3 more servicepacks, <strike>mongo</strike>, <strike>redis</strike>, rabbitmq, etc.
 * documentation for both pocketpaas and servicepack
   * reference
   * quick start
 * packaging for both
+* servicepack
+  * move ssh key from build to setup
+  * add version
+  * remove backup and extra as we don't need them yet
 * <strike>implement consistent config handling</strike>
 * <strike>push routing config into hipache</strike>
 * <strike>hipache container set up</strike>
