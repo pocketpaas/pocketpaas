@@ -8,7 +8,7 @@
   * quick start
 * packaging for both
 * servicepack
-  * move ssh key from build to setup
+  * <strike>move ssh key from build to setup</strike>
   * add version
   * remove backup and extra as we don't need them yet
 * <strike>implement consistent config handling</strike>
