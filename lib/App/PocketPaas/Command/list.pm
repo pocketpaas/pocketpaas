@@ -8,8 +8,7 @@ use warnings;
 
 use App::PocketPaas::Core qw(setup_pocketpaas);
 use App::PocketPaas::Config qw(get_config);
-use App::PocketPaas::Docker qw(docker_containers docker_images);
-use App::PocketPaas::Model::App;
+use App::PocketPaas::App qw(load_app_names);
 
 use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
@@ -24,10 +23,7 @@ sub execute {
     my $config = get_config();
     setup_pocketpaas($config);
 
-    my $app_names
-        = App::PocketPaas::Model::App->load_names( $config,
-        docker_containers( $config, { all => 1 } ),
-        docker_images($config) );
+    my $app_names = load_app_names($config);
 
     print Dump($app_names);
 }

@@ -19,8 +19,35 @@ use File::Temp qw(tempdir);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
 
-use Sub::Exporter -setup =>
-    { exports => [qw(push_app start_app stop_app destroy_app)] };
+use Sub::Exporter -setup => {
+    exports => [
+        qw(load_app load_app_names load_all_apps push_app start_app stop_app destroy_app)
+    ]
+};
+
+sub load_app {
+    my ( $config, $app_name ) = @_;
+
+    return App::PocketPaas::Model::App->load( $config, $app_name,
+        docker_containers( $config, { all => 1 } ),
+        docker_images($config) );
+}
+
+sub load_app_names {
+    my ($config) = @_;
+
+    return App::PocketPaas::Model::App->load_names( $config,
+        docker_containers( $config, { all => 1 } ),
+        docker_images($config) );
+}
+
+sub load_all_apps {
+    my ($config) = @_;
+
+    return App::PocketPaas::Model::App->load_all( $config,
+        docker_containers( $config, { all => 1 } ),
+        docker_images($config) );
+}
 
 sub push_app {
     my ( $config, $app_config ) = @_;

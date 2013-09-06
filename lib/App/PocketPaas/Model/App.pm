@@ -105,11 +105,16 @@ sub load_names {
 }
 
 sub load_all {
-    my ( $class, $docker_containers, $docker_images ) = @_;
+    my ( $class, $config, $docker_containers, $docker_images ) = @_;
 
-    my $app_names = $class->load_names( $docker_containers, $docker_images );
-    return [ map { $class->load( $_, $docker_containers, $docker_images ) }
-            @$app_names ];
+    my $app_names
+        = $class->load_names( $config, $docker_containers, $docker_images );
+    return {
+        map {
+            $_ => $class->load( $config, $_, $docker_containers,
+                $docker_images )
+        } @$app_names
+    };
 }
 
 1;

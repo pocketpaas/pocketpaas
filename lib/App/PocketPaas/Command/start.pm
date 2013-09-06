@@ -8,9 +8,7 @@ use warnings;
 
 use App::PocketPaas::Core qw(setup_pocketpaas);
 use App::PocketPaas::Config qw(get_config);
-use App::PocketPaas::App qw(start_app);
-use App::PocketPaas::Docker qw(docker_containers docker_images);
-use App::PocketPaas::Model::App;
+use App::PocketPaas::App qw(start_app load_app);
 use App::PocketPaas::Util qw(load_app_config);
 
 use Cwd;
@@ -36,10 +34,7 @@ sub execute {
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    my $app
-        = App::PocketPaas::Model::App->load( $config, $app_name,
-        docker_containers( $config, { all => 1 } ),
-        docker_images($config) );
+    my $app = load_app( $config, $app_name );
 
     if ( !$app ) {
         ERROR("No app by the name of $app_name");
