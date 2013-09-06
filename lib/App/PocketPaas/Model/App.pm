@@ -2,6 +2,7 @@ package App::PocketPaas::Model::App;
 
 use App::PocketPaas::Model::Image;
 use App::PocketPaas::Model::Container;
+use List::MoreUtils qw(any);
 
 use Moo;
 
@@ -10,6 +11,8 @@ has name => ( is => 'ro' );
 has containers => ( is => 'ro' );
 
 has images => ( is => 'ro' );
+
+has status => ( is => 'ro' );
 
 sub load {
     my ( $class, $config, $name, $docker_containers, $docker_images ) = @_;
@@ -45,6 +48,14 @@ sub load {
         }
     }
 
+    my $status;
+    if ( any { $_->status() eq 'running' } @containers ) {
+        $status = 'running';
+    }
+    else {
+        $status = 'stopped';
+    }
+
     my $potential_tags = {};
     foreach my $docker_image (@$docker_images) {
         if ( defined( $docker_image->{Repository} )
@@ -73,6 +84,7 @@ sub load {
     return $class->new(
         {   name       => $name,
             containers => \@containers,
+            status     => $status,
             images     => [ sort { $b->{tag} cmp $a->{tag} } @images ],
         }
     );

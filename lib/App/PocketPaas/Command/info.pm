@@ -52,12 +52,11 @@ sub execute {
     if ( my ($running_container)
         = grep { $_->status() eq 'running' } @{ $app->containers() } )
     {
-        $status->{state}         = 'running';
         $status->{running_build} = $running_container->tag();
     }
     else {
-        $status->{state} = 'stopped';
     }
+    $status->{status} = $app->status();
 
     my $note = get_note( $config, "app_$app_name" );
     $status->{services} = $note->{services};
