@@ -6,9 +6,9 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas::App qw(load_app destroy_app);
-use App::PocketPaas::Config qw(get_config);
-use App::PocketPaas::Core qw(setup_pocketpaas);
+use App::PocketPaas::App qw(load_app);
+use App::PocketPaas::Core;
+use App::PocketPaas::Task::DestroyApp;
 use App::PocketPaas::Util qw(load_app_config);
 
 use Cwd;
@@ -25,15 +25,14 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $config = get_config();
-    setup_pocketpaas($config);
+    my $pps = App::PocketPaas::Core->load_pps();
 
-    my $app_config = load_app_config( $config, getcwd, $opt );
+    my $app_config = load_app_config( $pps->config, getcwd, $opt );
 
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    my $app = load_app( $config, $app_name );
+    my $app = load_app( $pps->config, $app_name );
 
     if ( !$app ) {
         ERROR("No app by the name of $app_name");
@@ -44,7 +43,10 @@ sub execute {
 
     INFO("Destroying $app_name");
 
-    destroy_app( $config, $app_config, $app );
+    $pps->queue_task(
+        App::PocketPaas::Task::DestroyApp->new( $pps, $app_config, $app ) );
+
+    $pps->finish_queue();
 }
 
 1;

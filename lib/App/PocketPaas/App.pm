@@ -9,19 +9,18 @@ use App::PocketPaas::Docker qw(
 );
 use App::PocketPaas::Hipache qw(add_hipache_app);
 use App::PocketPaas::Model::App;
-use App::PocketPaas::Notes qw(add_note delete_note);
-use App::PocketPaas::Service qw(provision_service);
-use App::PocketPaas::Util qw(next_tag);
+use App::PocketPaas::Notes qw(add_note delete_note query_notes);
 
 use File::Path qw(make_path);
 use File::Slurp qw(write_file);
 use File::Temp qw(tempdir);
+use List::MoreUtils qw(any);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
 
 use Sub::Exporter -setup => {
     exports => [
-        qw(load_app load_app_names load_all_apps push_app start_app stop_app destroy_app)
+        qw(load_app load_app_names load_all_apps find_apps_using_service build_app start_app stop_app destroy_app)
     ]
 };
 
@@ -49,18 +48,28 @@ sub load_all_apps {
         docker_images($config) );
 }
 
-sub push_app {
-    my ( $config, $app_config ) = @_;
+sub find_apps_using_service {
+    my ( $config, $service_name ) = @_;
 
-    my $app_name = $app_config->{name};
+    my $app_notes = query_notes(
+        $config,
+        sub {
+            my ( $key, $contents ) = @_;
 
-    my $app = App::PocketPaas::Model::App->load(
-        $config, $app_name,
-        docker_containers( $config, { all => 1 } ),
-        docker_images( $config, )
+            return 0 unless $key =~ /^app_/;
+            return any { $_->{name} eq $service_name }
+            @{ $contents->{services} };
+        }
     );
 
-    INFO("Pushing $app_name");
+    # TODO only count apps that are running (or should be running)
+    #my $all_apps = load_all_apps($config);
+
+    [ map { $_->{contents}{name} } @$app_notes ];
+}
+
+sub build_app {
+    my ( $config, $app_name, $app_config, $tag, $app ) = @_;
 
     my $app_build_dir = tempdir();
 
@@ -70,11 +79,9 @@ sub push_app {
 
     prepare_app_build( $config, $app_build_dir, $app_name );
 
-    my $tag = next_tag( $config, $app );
-
     if (docker_build(
             $config, $app_build_dir,
-            "$config->{app_image_prefix}/$app_name:temp-$tag"
+            $config->{app_image_prefix} . "/$app_name:temp-$tag"
         )
         )
     {
@@ -82,13 +89,13 @@ sub push_app {
     }
     else {
         docker_rmi( $config,
-            "$config->{app_image_prefix}/$app_name:temp-$tag" );
+            $config->{app_image_prefix} . "/$app_name:temp-$tag" );
         return;
     }
 
     my %cache_volume_opts;
     if ( !$app_config->{'no_cache'} ) {
-        my $cache_dir = "$config->{base_dir}/cache/$app_name";
+        my $cache_dir = $config->{base_dir} . "/cache/$app_name";
         if ( $app_config->{'reset_cache'} ) {
 
             # TODO: remove cache path, might be root owned
@@ -101,7 +108,7 @@ sub push_app {
     INFO("Building application");
     if (my $build_container_id = docker_run(
             $config,
-            "$config->{app_image_prefix}/$app_name:temp-$tag",
+            $config->{app_image_prefix} . "/$app_name:temp-$tag",
             {   daemon  => 1,
                 command => '/build/builder',
                 %cache_volume_opts
@@ -114,7 +121,7 @@ sub push_app {
 
         if ( docker_wait( $config, $build_container_id ) ) {
             docker_commit( $config, $build_container_id,
-                "$config->{app_image_prefix}/$app_name", "build-$tag" );
+                $config->{app_image_prefix} . "/$app_name", "build-$tag" );
         }
         else {
             # TODO: clean up images
@@ -125,55 +132,34 @@ sub push_app {
         return;
     }
 
-    start_app( $config, $app_config, $tag, $app );
-
-    docker_rmi( $config, "$config->{app_image_prefix}/$app_name:temp-$tag" );
-
 }
 
 sub start_app {
-    my ( $config, $app_config, $tag, $app ) = @_;
-
-    my $app_name = $app_config->{name};
+    my ( $config, $app_name, $tag, $app, $service_env ) = @_;
 
     my $app_run_build_dir = tempdir();
     DEBUG("Run build dir: $app_run_build_dir");
-
-    # TODO services are blank when not run from app dir,
-    # perhaps record services in note
-    my $service_env   = '';
-    my $service_names = [];
-    if ( $app_config->{services} ) {
-        foreach my $service ( @{ $app_config->{services} } ) {
-            my $name = $service->{name};
-            my $type = $service->{type};
-
-            # TODO add support for a git url as the type
-            $service = provision_service( $config, $name, $type );
-
-            $service_env .= $service->env();
-
-            push @$service_names, $name;
-        }
-    }
 
     prepare_run_build( $config, $app_run_build_dir, $app_name, $tag,
         $service_env );
 
     if (!docker_build(
             $config, $app_run_build_dir,
-            "$config->{app_image_prefix}/$app_name:run-$tag"
+            $config->{app_image_prefix} . "/$app_name:run-$tag"
         )
         )
     {
         return;
     }
 
+    docker_rmi( $config,
+        $config->{app_image_prefix} . "/$app_name:temp-$tag" );
+
     # now start it up (-:
     INFO("Starting application");
     my $docker_id = docker_run(
         $config,
-        "$config->{app_image_prefix}/$app_name:run-$tag",
+        $config->{app_image_prefix} . "/$app_name:run-$tag",
         { daemon => 1 }
     );
 
@@ -182,16 +168,7 @@ sub start_app {
     }
 
     # add to hipache
-    add_hipache_app( $config, $app_config, $docker_id );
-
-    add_note(
-        $config,
-        "app_$app_name",
-        {   services  => $service_names,
-            name      => $app_name,
-            should_be => 'running',
-        }
-    );
+    add_hipache_app( $config, $app_name, $docker_id );
 
     # if app was previously running
     if ($app) {
@@ -205,9 +182,6 @@ sub start_app {
     }
 
     # TODO remove previous "run" tag, if it exists
-
-    # TODO record which build was used so that the same
-    # one can be used in recovery.
 }
 
 sub stop_app {

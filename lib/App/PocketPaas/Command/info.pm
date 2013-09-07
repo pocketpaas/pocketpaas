@@ -6,8 +6,7 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas::Config qw(get_config);
-use App::PocketPaas::Core qw(setup_pocketpaas);
+use App::PocketPaas::Core;
 use App::PocketPaas::Notes qw(get_note);
 use App::PocketPaas::App qw(load_app);
 use App::PocketPaas::Util qw(load_app_config);
@@ -27,15 +26,14 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $config = get_config();
-    setup_pocketpaas($config);
+    my $pps = App::PocketPaas::Core->load_pps();
 
-    my $app_config = load_app_config( $config, getcwd, $opt );
+    my $app_config = load_app_config( $pps->config, getcwd, $opt );
 
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    my $app = load_app( $config, $app_name );
+    my $app = load_app( $pps->config, $app_name );
 
     if ( !$app ) {
         ERROR("No app by the name of $app_name");
@@ -58,7 +56,7 @@ sub execute {
     }
     $status->{status} = $app->status();
 
-    my $note = get_note( $config, "app_$app_name" );
+    my $note = get_note( $pps->config, "app_$app_name" );
     $status->{services} = $note->{services};
 
     print Dump($status);

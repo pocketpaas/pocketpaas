@@ -6,9 +6,8 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas::App qw(push_app);
-use App::PocketPaas::Config qw(get_config);
-use App::PocketPaas::Core qw(setup_pocketpaas);
+use App::PocketPaas::Core;
+use App::PocketPaas::Task::PushApp;
 use App::PocketPaas::Util qw(load_app_config);
 
 use Cwd;
@@ -35,15 +34,17 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $config = get_config();
-    setup_pocketpaas($config);
+    my $pps = App::PocketPaas::Core->load_pps();
 
-    my $app_config = load_app_config( $config, getcwd, $opt );
+    my $app_config = load_app_config( $pps->config, getcwd, $opt );
 
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    push_app( $config, $app_config );
+    $pps->queue_task(
+        App::PocketPaas::Task::PushApp->new( $pps, $app_config ) );
+
+    $pps->finish_queue();
 }
 
 1;

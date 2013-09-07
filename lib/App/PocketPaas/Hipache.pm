@@ -12,7 +12,7 @@ use Redis;
 use Sub::Exporter -setup => { exports => [qw(add_hipache_app)] };
 
 sub add_hipache_app {
-    my ( $config, $app_config, $docker_id ) = @_;
+    my ( $config, $app_name, $docker_id ) = @_;
 
     INFO("Putting new application into hipache proxy");
 
@@ -21,7 +21,7 @@ sub add_hipache_app {
     my $container_info = docker_inspect( $config, $docker_id );
     my $app_ip_address = $container_info->{NetworkSettings}{IPAddress};
     my $app_port       = 5000;
-    DEBUG("Mapping $app_config->{name}.$domain to $app_ip_address:$app_port");
+    DEBUG("Mapping $app_name.$domain to $app_ip_address:$app_port");
 
     my $hipache_service = get_service( $config, 'pps_hipache' );
     if ( !$hipache_service ) {
@@ -37,13 +37,12 @@ sub add_hipache_app {
 
     my $redis = Redis->new( server => "$redis_host:$redis_port" );
 
-    my $hipache_key
-        = sprintf( 'frontend:%s.%s', $app_config->{name}, $domain );
+    my $hipache_key = sprintf( 'frontend:%s.%s', $app_name, $domain );
 
     DEBUG("del $hipache_key");
     $redis->del($hipache_key);
-    DEBUG("rpush $hipache_key '$app_config->{name}'");
-    $redis->rpush( $hipache_key, $app_config->{name} );
+    DEBUG("rpush $hipache_key '$app_name'");
+    $redis->rpush( $hipache_key, $app_name );
     DEBUG(
         sprintf(
             "rpush $hipache_key 'http://%s:%d'",

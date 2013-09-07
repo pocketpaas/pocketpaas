@@ -6,9 +6,9 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas::Core qw(setup_pocketpaas);
-use App::PocketPaas::Config qw(get_config);
-use App::PocketPaas::App qw(start_app load_app);
+use App::PocketPaas::App qw(load_app);
+use App::PocketPaas::Core;
+use App::PocketPaas::Task::StartApp;
 use App::PocketPaas::Util qw(load_app_config);
 
 use Cwd;
@@ -26,15 +26,14 @@ sub opt_spec {
 sub execute {
     my ( $self, $opt, $args ) = @_;
 
-    my $config = get_config();
-    setup_pocketpaas($config);
+    my $pps = App::PocketPaas::Core->load_pps();
 
-    my $app_config = load_app_config( $config, getcwd, $opt );
+    my $app_config = load_app_config( $pps->config, getcwd, $opt );
 
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    my $app = load_app( $config, $app_name );
+    my $app = load_app( $pps->config, $app_name );
 
     if ( !$app ) {
         ERROR("No app by the name of $app_name");
@@ -43,24 +42,14 @@ sub execute {
 
     INFO("Starting $app_name");
 
-    # TODO check for application already running
+    $pps->queue_task(
+        App::PocketPaas::Task::StartApp->new(
+            $pps, $app_name, $app_config->{services},
+            $opt->{build}, $app
+        )
+    );
 
-    my $build = $opt->{build};
-
-    my $image;
-
-    if ($build) {
-        ($image) = grep { $_->tag() eq $build } @{ $app->images };
-        if ( !$image ) {
-            die "Unable to find image for build $build.\n";
-        }
-    }
-    else {
-        die "No images for app.\n" unless @{ $app->images };
-        $image = @{ $app->images }[0];
-    }
-
-    start_app( $config, $app_config, $image->tag(), $app );
+    $pps->finish_queue();
 }
 
 1;

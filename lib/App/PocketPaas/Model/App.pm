@@ -68,9 +68,7 @@ sub load {
         }
     }
     foreach my $potential_tag ( keys %$potential_tags ) {
-        if (   $potential_tags->{$potential_tag}->{build}
-            && $potential_tags->{$potential_tag}->{run} )
-        {
+        if ( $potential_tags->{$potential_tag}->{build} ) {
             push @images,
                 App::PocketPaas::Model::Image->new(
                 { tag => $potential_tag } );
