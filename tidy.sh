@@ -5,5 +5,5 @@
 
 for file in `./.ack -f --perl --ignore-file=is:.ack --ignore-dir local`; do
     echo "Tidying $file";
-    carton exec perltidy -pbp -l=100 -b -nse -nst $file;
+    carton exec perltidy -pro=.../.perltidyrc $file;
 done
