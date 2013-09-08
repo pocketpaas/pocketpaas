@@ -2,3 +2,4 @@
 local/
 pps.packed
 .vagrant/
+*.bak
