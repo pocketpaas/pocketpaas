@@ -6,16 +6,12 @@ use App::PocketPaas -command;
 use strict;
 use warnings;
 
-use App::PocketPaas::Config
-    qw(get_public_config get_config set_config unset_config);
+use App::PocketPaas::Config qw(get_public_config get_config set_config unset_config);
 
 use YAML qw(Dump);
 
 sub opt_spec {
-    return (
-        [ "unset|u=s", "unset a config key" ],
-        [ "set|s=s",   "set a config key" ],
-    );
+    return ( [ "unset|u=s", "unset a config key" ], [ "set|s=s", "set a config key" ], );
 }
 
 sub execute {

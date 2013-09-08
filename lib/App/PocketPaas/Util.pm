@@ -82,8 +82,7 @@ sub load_app_config {
     if ( $options->{service} ) {
         foreach my $service_spec ( @{ $options->{service} } ) {
             my ( $name, $type ) = split( /:/, $service_spec );
-            push @{ $app_config->{services} },
-                { name => $name, type => $type };
+            push @{ $app_config->{services} }, { name => $name, type => $type };
         }
     }
     else {
@@ -92,8 +91,7 @@ sub load_app_config {
                 my ($name) = keys %$service;
                 my $type = $service->{$name};
 
-                push @{ $app_config->{services} },
-                    { name => $name, type => $type };
+                push @{ $app_config->{services} }, { name => $name, type => $type };
             }
         }
     }

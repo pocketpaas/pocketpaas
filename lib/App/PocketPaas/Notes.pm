@@ -9,8 +9,7 @@ use File::Slurp qw(read_file write_file);
 use JSON;
 use Log::Log4perl qw(:easy);
 
-use Sub::Exporter -setup =>
-    { exports => [qw(add_note get_note delete_note query_notes)] };
+use Sub::Exporter -setup => { exports => [qw(add_note get_note delete_note query_notes)] };
 
 my $json = JSON->new->pretty;
 

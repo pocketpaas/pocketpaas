@@ -17,10 +17,7 @@ use YAML qw(Dump);
 
 sub opt_spec {
     return (
-        [   "name|n=s",
-            "application name, defaults to the directory name or read from pps.yml"
-        ],
-    );
+        [ "name|n=s", "application name, defaults to the directory name or read from pps.yml" ], );
 }
 
 sub execute {
@@ -47,9 +44,7 @@ sub execute {
     }
     $status->{builds} = [ map { $_->tag() } @{ $app->images() } ];
 
-    if ( my ($running_container)
-        = grep { $_->status() eq 'running' } @{ $app->containers() } )
-    {
+    if ( my ($running_container) = grep { $_->status() eq 'running' } @{ $app->containers() } ) {
         $status->{running_build} = $running_container->tag();
     }
     else {

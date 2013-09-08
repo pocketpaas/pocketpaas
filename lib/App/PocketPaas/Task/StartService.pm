@@ -38,8 +38,7 @@ sub perform {
             # TODO change this to restart when start doesn't restart
             my $app_names = find_apps_using_service( $pps->config, $name );
             foreach my $app_name (@$app_names) {
-                $pps->queue_task(
-                    App::PocketPaas::Task::StartApp->new( $pps, $app_name ) );
+                $pps->queue_task( App::PocketPaas::Task::StartApp->new( $pps, $app_name ) );
             }
         }
     }

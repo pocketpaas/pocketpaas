@@ -101,10 +101,7 @@ sub perform {
             else {
                 $services_needed_provisioning = 1;
                 $pps->queue_task(
-                    App::PocketPaas::Task::ProvisionService->new(
-                        $pps, $name, $type
-                    )
-                );
+                    App::PocketPaas::Task::ProvisionService->new( $pps, $name, $type ) );
             }
         }
     }

@@ -57,8 +57,7 @@ sub find_apps_using_service {
             my ( $key, $contents ) = @_;
 
             return 0 unless $key =~ /^app_/;
-            return any { $_->{name} eq $service_name }
-            @{ $contents->{services} };
+            return any { $_->{name} eq $service_name } @{ $contents->{services} };
         }
     );
 
@@ -80,16 +79,14 @@ sub build_app {
     prepare_app_build( $config, $app_build_dir, $app_name );
 
     if (docker_build(
-            $config, $app_build_dir,
-            $config->{app_image_prefix} . "/$app_name:temp-$tag"
+            $config, $app_build_dir, $config->{app_image_prefix} . "/$app_name:temp-$tag"
         )
         )
     {
         INFO("Application built successfully");
     }
     else {
-        docker_rmi( $config,
-            $config->{app_image_prefix} . "/$app_name:temp-$tag" );
+        docker_rmi( $config, $config->{app_image_prefix} . "/$app_name:temp-$tag" );
         return;
     }
 
@@ -140,28 +137,22 @@ sub start_app {
     my $app_run_build_dir = tempdir();
     DEBUG("Run build dir: $app_run_build_dir");
 
-    prepare_run_build( $config, $app_run_build_dir, $app_name, $tag,
-        $service_env );
+    prepare_run_build( $config, $app_run_build_dir, $app_name, $tag, $service_env );
 
     if (!docker_build(
-            $config, $app_run_build_dir,
-            $config->{app_image_prefix} . "/$app_name:run-$tag"
+            $config, $app_run_build_dir, $config->{app_image_prefix} . "/$app_name:run-$tag"
         )
         )
     {
         return;
     }
 
-    docker_rmi( $config,
-        $config->{app_image_prefix} . "/$app_name:temp-$tag" );
+    docker_rmi( $config, $config->{app_image_prefix} . "/$app_name:temp-$tag" );
 
     # now start it up (-:
     INFO("Starting application");
-    my $docker_id = docker_run(
-        $config,
-        $config->{app_image_prefix} . "/$app_name:run-$tag",
-        { daemon => 1 }
-    );
+    my $docker_id = docker_run( $config, $config->{app_image_prefix} . "/$app_name:run-$tag",
+        { daemon => 1 } );
 
     if ( !$docker_id ) {
         return;
@@ -213,10 +204,8 @@ sub destroy_app {
     }
 
     foreach my $image ( @{ $app->images() } ) {
-        docker_rmi( $config,
-            "$config->{app_image_prefix}/$app_name:" . $image->build_tag() );
-        docker_rmi( $config,
-            "$config->{app_image_prefix}/$app_name:" . $image->run_tag() );
+        docker_rmi( $config, "$config->{app_image_prefix}/$app_name:" . $image->build_tag() );
+        docker_rmi( $config, "$config->{app_image_prefix}/$app_name:" . $image->run_tag() );
     }
 
     delete_note( $config, "app_$app_name" );
@@ -227,10 +216,8 @@ sub _generate_app_tarball {
 
     INFO("Generating tarball for application");
 
-    my @create_tar_cmd = (
-        qw(git archive --format tar --prefix app/ -o),
-        "$dest_dir/app.tar", qw(master)
-    );
+    my @create_tar_cmd
+        = ( qw(git archive --format tar --prefix app/ -o), "$dest_dir/app.tar", qw(master) );
 
     run3 \@create_tar_cmd;
 }

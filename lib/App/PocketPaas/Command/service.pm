@@ -7,8 +7,7 @@ use strict;
 use warnings;
 
 use App::PocketPaas::Core;
-use App::PocketPaas::Service
-    qw(get_service get_all_services stop_service start_service);
+use App::PocketPaas::Service qw(get_service get_all_services stop_service start_service);
 use App::PocketPaas::Task::StopService;
 use App::PocketPaas::Task::StartService;
 use App::PocketPaas::Task::ProvisionService;
@@ -18,8 +17,7 @@ use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
 
 sub opt_spec {
-    return ( [ "name|n=s", "service name" ], [ "type|t=s", "service type" ],
-    );
+    return ( [ "name|n=s", "service name" ], [ "type|t=s", "service type" ], );
 }
 
 sub execute {
@@ -34,11 +32,7 @@ sub execute {
         my $name = _get_name_opt($opt);
         my $type = _get_type_opt($opt);
 
-        $pps->queue_task(
-            App::PocketPaas::Task::ProvisionService->new(
-                $pps, $name, $type
-            )
-        );
+        $pps->queue_task( App::PocketPaas::Task::ProvisionService->new( $pps, $name, $type ) );
     }
     elsif ( $command eq 'list' ) {
 
@@ -70,15 +64,13 @@ sub execute {
 
         # TODO prevent stopping core pps services
 
-        $pps->queue_task(
-            App::PocketPaas::Task::StopService->new( $pps, $name ) );
+        $pps->queue_task( App::PocketPaas::Task::StopService->new( $pps, $name ) );
     }
     elsif ( $command eq 'start' ) {
         my $name = _get_name_opt($opt);
         my $service = _get_service( $pps->config, $name );
 
-        $pps->queue_task(
-            App::PocketPaas::Task::StartService->new( $pps, $name ) );
+        $pps->queue_task( App::PocketPaas::Task::StartService->new( $pps, $name ) );
     }
     elsif ( $command eq 'destroy' ) {
 

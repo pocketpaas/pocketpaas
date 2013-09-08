@@ -18,8 +18,7 @@ sub load {
     foreach my $docker_image (@$docker_images) {
 
         if ( defined( $docker_image->{Repository} )
-            && $docker_image->{Repository} eq
-            "$config->{base_image_prefix}/$type" )
+            && $docker_image->{Repository} eq "$config->{base_image_prefix}/$type" )
         {
             push @$tags, $docker_image->{Tag};
         }

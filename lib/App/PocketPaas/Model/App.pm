@@ -20,9 +20,7 @@ sub load {
     my ( @images, @containers );
 
     foreach my $docker_container (@$docker_containers) {
-        if ( $docker_container->{Image}
-            =~ m{^$config->{app_image_prefix}/$name:run-([\d-]+)$} )
-        {
+        if ( $docker_container->{Image} =~ m{^$config->{app_image_prefix}/$name:run-([\d-]+)$} ) {
             my $tag           = $1;
             my $docker_status = $docker_container->{Status};
             my $status;
@@ -59,19 +57,15 @@ sub load {
     my $potential_tags = {};
     foreach my $docker_image (@$docker_images) {
         if ( defined( $docker_image->{Repository} )
-            && $docker_image->{Repository} eq
-            "$config->{app_image_prefix}/$name" )
+            && $docker_image->{Repository} eq "$config->{app_image_prefix}/$name" )
         {
-            my ( $type, $tag )
-                = $docker_image->{Tag} =~ m{^(build|run|temp)-([\d-]+)$};
+            my ( $type, $tag ) = $docker_image->{Tag} =~ m{^(build|run|temp)-([\d-]+)$};
             $potential_tags->{$tag}->{$type} = 1;
         }
     }
     foreach my $potential_tag ( keys %$potential_tags ) {
         if ( $potential_tags->{$potential_tag}->{build} ) {
-            push @images,
-                App::PocketPaas::Model::Image->new(
-                { tag => $potential_tag } );
+            push @images, App::PocketPaas::Model::Image->new( { tag => $potential_tag } );
         }
     }
 
@@ -94,8 +88,7 @@ sub load_names {
     my $apps = {};
     foreach my $docker_container (@$docker_containers) {
         if ( my ($app_name)
-            = $docker_container->{Image}
-            =~ m{^$config->{app_image_prefix}/([^:]+):run-[\d-]+$} )
+            = $docker_container->{Image} =~ m{^$config->{app_image_prefix}/([^:]+):run-[\d-]+$} )
         {
             $apps->{$app_name}++;
         }
@@ -104,8 +97,7 @@ sub load_names {
         next if !defined( $docker_image->{Repository} );
 
         if ( my ($app_name)
-            = $docker_image->{Repository}
-            =~ m{$config->{app_image_prefix}/([^:]+)} )
+            = $docker_image->{Repository} =~ m{$config->{app_image_prefix}/([^:]+)} )
         {
             $apps->{$app_name}++;
         }
@@ -117,14 +109,9 @@ sub load_names {
 sub load_all {
     my ( $class, $config, $docker_containers, $docker_images ) = @_;
 
-    my $app_names
-        = $class->load_names( $config, $docker_containers, $docker_images );
-    return {
-        map {
-            $_ => $class->load( $config, $_, $docker_containers,
-                $docker_images )
-        } @$app_names
-    };
+    my $app_names = $class->load_names( $config, $docker_containers, $docker_images );
+    return { map { $_ => $class->load( $config, $_, $docker_containers, $docker_images ) }
+            @$app_names };
 }
 
 1;

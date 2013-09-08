@@ -35,15 +35,11 @@ sub perform {
     my $service = get_service( $pps->config, $name );
 
     if ($service) {
-        $pps->queue_task(
-            App::PocketPaas::Task::StartService->new( $pps, $name ) );
+        $pps->queue_task( App::PocketPaas::Task::StartService->new( $pps, $name ) );
     }
     else {
         $pps->queue_task(
-            App::PocketPaas::Task::CreateService->new(
-                $pps, $name, $self->type, $self->options
-            )
-        );
+            App::PocketPaas::Task::CreateService->new( $pps, $name, $self->type, $self->options ) );
     }
 
 }

@@ -77,9 +77,7 @@ sub docker_run {
     if ( $options->{daemon} ) {
 
         my $output;
-        run3 [ @DOCKER, qw(run -d), @args, $image, @command ], undef,
-            \$output,
-            \$output;
+        run3 [ @DOCKER, qw(run -d), @args, $image, @command ], undef, \$output, \$output;
 
         chomp $output;
 

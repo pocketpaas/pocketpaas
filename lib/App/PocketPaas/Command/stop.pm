@@ -16,10 +16,7 @@ use Log::Log4perl qw(:easy);
 
 sub opt_spec {
     return (
-        [   "name|n=s",
-            "application name, defaults to the directory name or read from pps.yml"
-        ],
-    );
+        [ "name|n=s", "application name, defaults to the directory name or read from pps.yml" ], );
 }
 
 sub execute {
@@ -41,8 +38,7 @@ sub execute {
 
     INFO("Stopping $app_name");
 
-    $pps->queue_task(
-        App::PocketPaas::Task::StopApp->new( $pps, $app_config, $app ) );
+    $pps->queue_task( App::PocketPaas::Task::StopApp->new( $pps, $app_config, $app ) );
 
     $pps->finish_queue();
 }

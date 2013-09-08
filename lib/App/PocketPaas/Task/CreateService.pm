@@ -27,8 +27,7 @@ sub desc {
 sub perform {
     my ($self) = @_;
 
-    create_service( $self->pps->config, $self->name, $self->type,
-        $self->options );
+    create_service( $self->pps->config, $self->name, $self->type, $self->options );
 }
 
 1;

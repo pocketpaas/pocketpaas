@@ -41,14 +41,11 @@ sub get_config {
     # and those that only developers should care about
 
     my $config = {
-        domain   => $note->{domain}   || $DEFAULT_BASE_DOMAIN,
-        base_dir => $note->{base_dir} || $DEFAULT_BASE_DIR,
-        app_image_prefix => $note->{app_image_prefix}
-            || $DEFAULT_APP_IMAGE_PREFIX,
-        base_image_prefix => $note->{base_image_prefix}
-            || $DEFAULT_BASE_IMAGE_PREFIX,
-        svc_image_prefix => $note->{svc_image_prefix}
-            || $DEFAULT_SERVICE_IMAGE_PREFIX,
+        domain            => $note->{domain}            || $DEFAULT_BASE_DOMAIN,
+        base_dir          => $note->{base_dir}          || $DEFAULT_BASE_DIR,
+        app_image_prefix  => $note->{app_image_prefix}  || $DEFAULT_APP_IMAGE_PREFIX,
+        base_image_prefix => $note->{base_image_prefix} || $DEFAULT_BASE_IMAGE_PREFIX,
+        svc_image_prefix  => $note->{svc_image_prefix}  || $DEFAULT_SERVICE_IMAGE_PREFIX,
     };
 
     return $key ? $config->{$key} // '' : $config;

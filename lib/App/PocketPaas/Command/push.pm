@@ -19,12 +19,8 @@ use File::Path qw(make_path);
 
 sub opt_spec {
     return (
-        [   "name|n=s",
-            "application name, defaults to the directory name or read from pps.yml"
-        ],
-        [   "stage|s",
-            "run new code in a new container without replacing production"
-        ],
+        [ "name|n=s",    "application name, defaults to the directory name or read from pps.yml" ],
+        [ "stage|s",     "run new code in a new container without replacing production" ],
         [ "no-cache",    "build without using a cache" ],
         [ "reset-cache", "reset the build cache" ],
         [ "service=s@",  "bind services to the application" ],
@@ -41,8 +37,7 @@ sub execute {
     my $app_name = $app_config->{name}
         || die "Please provide an application name with --name\n";
 
-    $pps->queue_task(
-        App::PocketPaas::Task::PushApp->new( $pps, $app_config ) );
+    $pps->queue_task( App::PocketPaas::Task::PushApp->new( $pps, $app_config ) );
 
     $pps->finish_queue();
 }

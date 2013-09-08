@@ -3,8 +3,7 @@ package App::PocketPaas::Service;
 use strict;
 use warnings;
 
-use App::PocketPaas::Docker
-    qw(docker_images docker_inspect docker_run docker_start docker_stop);
+use App::PocketPaas::Docker qw(docker_images docker_inspect docker_run docker_start docker_stop);
 use App::PocketPaas::Model::Service;
 use App::PocketPaas::Model::ServiceBase;
 use App::PocketPaas::Notes qw(add_note get_note query_notes);
@@ -14,11 +13,8 @@ use IPC::Run3;
 use Log::Log4perl qw(:easy);
 use Readonly;
 
-use Sub::Exporter -setup => {
-    exports => [
-        qw(create_service stop_service start_service get_service get_all_services)
-    ]
-};
+use Sub::Exporter -setup =>
+    { exports => [qw(create_service stop_service start_service get_service get_all_services)] };
 
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
     mysql   => 'https://github.com/pocketpaas/servicepack_mysql.git',
@@ -47,39 +43,30 @@ sub create_service {
 
     # check if base exists already
     my $service_base
-        = App::PocketPaas::Model::ServiceBase->load( $config, $type,
-        docker_images($config) );
+        = App::PocketPaas::Model::ServiceBase->load( $config, $type, docker_images($config) );
 
     my $service_repo_base = "$config->{base_image_prefix}/$type";
     if ( !$service_base ) {
 
         # build the base image
-        run3 [
-            qw(svp build -b), $service_clone_path,
-            qw(-t),           $service_repo_base
-        ];
+        run3 [ qw(svp build -b), $service_clone_path, qw(-t), $service_repo_base ];
 
         $service_base
-            = App::PocketPaas::Model::ServiceBase->load( $config, $type,
-            docker_images($config) );
+            = App::PocketPaas::Model::ServiceBase->load( $config, $type, docker_images($config) );
     }
 
     # create setup image and capture env variables
     my $service_repo = "$config->{svc_image_prefix}/$name";
     my $output;
-    run3 [
-        qw(svp setup -b), $service_clone_path,
-        qw(-i),           $service_repo_base,
-        qw(-t),           $service_repo
-        ],
+    run3 [ qw(svp setup -b), $service_clone_path, qw(-i), $service_repo_base,
+        qw(-t), $service_repo ],
         undef, \$output;
 
     DEBUG("ENV: $output");
 
     # start the service
     my $docker_id
-        = docker_run( $config, $service_repo,
-        { daemon => 1, ports => $options->{ports} } );
+        = docker_run( $config, $service_repo, { daemon => 1, ports => $options->{ports} } );
 
     # TODO check for !$docker_id and skip the note
 
@@ -145,8 +132,7 @@ sub get_service {
 
     # TODO handle empty container info
 
-    return App::PocketPaas::Model::Service->load( $name, $type,
-        $env_template, $container_info );
+    return App::PocketPaas::Model::Service->load( $name, $type, $env_template, $container_info );
 }
 
 sub get_all_services {
@@ -174,8 +160,7 @@ sub get_all_services {
         my $container_info = docker_inspect( $config, $docker_id );
 
         push @$services,
-            App::PocketPaas::Model::Service->load( $name, $type,
-            $env_template, $container_info );
+            App::PocketPaas::Model::Service->load( $name, $type, $env_template, $container_info );
     }
 
     return $services;

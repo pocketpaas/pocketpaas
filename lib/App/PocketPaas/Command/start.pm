@@ -16,9 +16,7 @@ use Log::Log4perl qw(:easy);
 
 sub opt_spec {
     return (
-        [   "name|n=s",
-            "application name, defaults to the directory name or read from pps.yml"
-        ],
+        [ "name|n=s",  "application name, defaults to the directory name or read from pps.yml" ],
         [ "build|b=s", "build to start, defaults to latest build" ],
     );
 }

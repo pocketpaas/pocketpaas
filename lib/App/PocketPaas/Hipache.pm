@@ -30,10 +30,9 @@ sub add_hipache_app {
     }
 
     # get the hipache redis port from the hipache service environment
-    my $env = $hipache_service->env;
+    my $env          = $hipache_service->env;
     my ($redis_port) = $env =~ /POCKETPAAS_PPS_HIPACHE_REDIS_PORT=(\d+)/msi;
-    my ($redis_host)
-        = $env =~ /POCKETPAAS_PPS_HIPACHE_REDIS_HOST=([.\d]+)/msi;
+    my ($redis_host) = $env =~ /POCKETPAAS_PPS_HIPACHE_REDIS_HOST=([.\d]+)/msi;
 
     my $redis = Redis->new( server => "$redis_host:$redis_port" );
 
@@ -43,14 +42,8 @@ sub add_hipache_app {
     $redis->del($hipache_key);
     DEBUG("rpush $hipache_key '$app_name'");
     $redis->rpush( $hipache_key, $app_name );
-    DEBUG(
-        sprintf(
-            "rpush $hipache_key 'http://%s:%d'",
-            $app_ip_address, $app_port
-        )
-    );
-    $redis->rpush( $hipache_key,
-        sprintf( 'http://%s:%d', $app_ip_address, $app_port ) );
+    DEBUG( sprintf( "rpush $hipache_key 'http://%s:%d'", $app_ip_address, $app_port ) );
+    $redis->rpush( $hipache_key, sprintf( 'http://%s:%d', $app_ip_address, $app_port ) );
 }
 
 1;
