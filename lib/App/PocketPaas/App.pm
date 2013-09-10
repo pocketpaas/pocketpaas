@@ -234,9 +234,12 @@ DOCKER
 sub prepare_run_build {
     my ( $config, $app_run_build_dir, $app_name, $tag, $service_env ) = @_;
 
-    # TODO fix this to allow '=' in values
-    $service_env =~ s/^/ENV /gmsi;
-    $service_env =~ s/=/ /gmsi;
+    if ($service_env) {
+
+        # TODO fix this to allow '=' in values
+        $service_env =~ s/^/ENV /gmsi;
+        $service_env =~ s/=/ /gmsi;
+    }
 
     write_file( "$app_run_build_dir/Dockerfile", <<DOCKER2);
 from    $config->{app_image_prefix}/$app_name:build-$tag
