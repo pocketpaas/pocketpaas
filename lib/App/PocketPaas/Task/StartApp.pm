@@ -3,7 +3,7 @@ package App::PocketPaas::Task::StartApp;
 use strict;
 use warnings;
 
-use App::PocketPaas::Docker qw( docker_containers docker_images);
+use App::PocketPaas::Docker qw(docker_rm docker_stop docker_containers docker_images);
 use App::PocketPaas::Task::ProvisionService;
 use App::PocketPaas::App qw(start_app);
 use App::PocketPaas::Notes qw(add_note get_note);
@@ -18,16 +18,21 @@ has name     => ( is => 'ro' );
 has services => ( is => 'ro' );
 has tag      => ( is => 'ro' );
 has app      => ( is => 'ro' );
+has options  => ( is => 'ro' );
 
+# TODO reorder these args so that $options comes earlier
 sub BUILDARGS {
-    my ( $class, $pps, $name, $services, $tag, $app ) = @_;
+    my ( $class, $pps, $name, $services, $tag, $app, $options ) = @_;
+
+    $options ||= {};
 
     return {
         pps      => $pps,
         name     => $name,
         services => $services,
         tag      => $tag,
-        app      => $app
+        app      => $app,
+        options  => $options
     };
 }
 
@@ -42,8 +47,6 @@ sub perform {
     my $app_name = $self->name;
     my $services = $self->services;
 
-    # TODO check for application already running
-
     my $app = $self->app;
     if ( !$app ) {
         $app = App::PocketPaas::Model::App->load(
@@ -51,6 +54,11 @@ sub perform {
             docker_containers( $pps->config, { all => 1 } ),
             docker_images( $pps->config, )
         );
+    }
+
+    if ( !$self->options->{force} && $app->{status} eq 'running' ) {
+        INFO("App is already running");
+        return;
     }
 
     # validate tag
@@ -109,7 +117,20 @@ sub perform {
         die "end_of_line\n";
     }
 
-    start_app( $pps->config, $app_name, $tag, $app, $service_env );
+    start_app( $pps->config, $app_name, $tag, $service_env );
+
+    # if app was previously running
+    if ($app) {
+        INFO("Stopping previous containers");
+        foreach my $container ( @{ $app->containers() } ) {
+            if ( $container->status() eq 'running' ) {
+                docker_stop( $pps->config, $container->docker_id() );
+            }
+            docker_rm( $pps->config, $container->docker_id() );
+        }
+    }
+
+    # TODO remove previous "run" tag, if it exists
 
     add_note(
         $pps->config,

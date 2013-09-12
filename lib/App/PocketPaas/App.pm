@@ -132,7 +132,7 @@ sub build_app {
 }
 
 sub start_app {
-    my ( $config, $app_name, $tag, $app, $service_env ) = @_;
+    my ( $config, $app_name, $tag, $service_env ) = @_;
 
     my $app_run_build_dir = tempdir();
     DEBUG("Run build dir: $app_run_build_dir");
@@ -160,19 +160,6 @@ sub start_app {
 
     # add to hipache
     add_hipache_app( $config, $app_name, $docker_id );
-
-    # if app was previously running
-    if ($app) {
-        INFO("Stopping previous containers");
-        foreach my $container ( @{ $app->containers() } ) {
-            if ( $container->status() eq 'running' ) {
-                docker_stop( $config, $container->docker_id() );
-            }
-            docker_rm( $config, $container->docker_id() );
-        }
-    }
-
-    # TODO remove previous "run" tag, if it exists
 }
 
 sub stop_app {

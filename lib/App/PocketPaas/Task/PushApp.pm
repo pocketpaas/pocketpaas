@@ -55,7 +55,8 @@ sub perform {
 
     $pps->queue_task(
         App::PocketPaas::Task::StartApp->new(
-            $pps, $app_name, $app_config->{services}, $tag, $app
+            $pps, $app_name, $app_config->{services},
+            $tag, $app, { force => 1 }
         )
     );
 }
