@@ -16,6 +16,8 @@ use Readonly;
 use Sub::Exporter -setup =>
     { exports => [qw(create_service stop_service start_service get_service get_all_services)] };
 
+# TODO: make the base of these URLs a configuration parameter so that we don't
+# have to keep temporarily setting them
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
     mysql   => 'https://github.com/pocketpaas/servicepack_mysql.git',
     redis   => 'https://github.com/pocketpaas/servicepack_redis.git',
@@ -57,16 +59,47 @@ sub create_service {
 
     # create setup image and capture env variables
     my $service_repo = "$config->{svc_image_prefix}/$name";
-    my $output;
-    run3 [ qw(svp setup -b), $service_clone_path, qw(-i), $service_repo_base,
-        qw(-t), $service_repo ],
-        undef, \$output;
 
-    DEBUG("ENV: $output");
+    my $env;
+    run3 [
+        qw(svp setup -b), $service_clone_path,
+        qw(-i),           $service_repo_base,
+        qw(-t),           $service_repo
+        ],
+        undef, \$env;
 
+    DEBUG("ENV: $env");
+    my $environment = [ split( /\n/, $env ) ];
+
+    my $ports_raw;
+    run3 [ qw(svp ports -b), $service_clone_path, ], undef, \$ports_raw;
+
+    DEBUG("PORTS: $ports_raw");
+    my $container_ports = [ split( /\n/, $ports_raw ) ];
+
+    my @base_ports = qw(22);
+
+    if ( $options->{ports} ) {
+        foreach my $port_spec ( @{ $options->{ports} } ) {
+            my ( $ip, $public, $private )
+                = $port_spec =~ m/(?:(\d+\.[\d.]+):)?(?:(\d*):)?(\d+)/;
+
+            $container_ports = [ grep { $_ != $private } @$container_ports ];
+            push( @base_ports, $port_spec );
+        }
+    }
+
+    # TODO: use the -name option to name the service container appropriately
     # start the service
-    my $docker_id
-        = docker_run( $config, $service_repo, { daemon => 1, ports => $options->{ports} } );
+    my $docker_id = docker_run(
+        $config,
+        $service_repo,
+        {   daemon      => 1,
+            expose      => $container_ports,
+            ports       => \@base_ports,
+            environment => $environment
+        }
+    );
 
     # TODO check for !$docker_id and skip the note
 
@@ -74,11 +107,11 @@ sub create_service {
     add_note(
         $config,
         "service_$name",
-        {   docker_id    => $docker_id,
-            env_template => $output,
-            name         => $name,
-            should_be    => 'running',
-            type         => $type,
+        {   docker_id => $docker_id,
+            env       => $environment,
+            name      => $name,
+            should_be => 'running',
+            type      => $type,
         }
     );
 }
@@ -127,12 +160,13 @@ sub get_service {
 
     my $type           = $note->{type};
     my $docker_id      = $note->{docker_id};
-    my $env_template   = $note->{env_template};
+    my $env            = $note->{env};
     my $container_info = docker_inspect( $config, $docker_id );
 
     # TODO handle empty container info
 
-    return App::PocketPaas::Model::Service->load( $name, $type, $env_template, $container_info );
+    return App::PocketPaas::Model::Service->load( $name, $type, $env,
+        $container_info );
 }
 
 sub get_all_services {
@@ -156,11 +190,12 @@ sub get_all_services {
         my $name           = $contents->{name};
         my $type           = $contents->{type};
         my $docker_id      = $contents->{docker_id};
-        my $env_template   = $contents->{env_template};
+        my $env            = $contents->{env};
         my $container_info = docker_inspect( $config, $docker_id );
 
         push @$services,
-            App::PocketPaas::Model::Service->load( $name, $type, $env_template, $container_info );
+            App::PocketPaas::Model::Service->load( $name, $type, $env,
+            $container_info );
     }
 
     return $services;

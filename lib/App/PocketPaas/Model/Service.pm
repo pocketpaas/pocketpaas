@@ -5,16 +5,15 @@ use warnings;
 
 use Moo;
 
-has name         => ( is => 'ro' );
-has type         => ( is => 'ro' );
-has docker_id    => ( is => 'ro' );
-has status       => ( is => 'ro' );
-has image        => ( is => 'ro' );
-has env          => ( is => 'ro' );
-has env_template => ( is => 'ro' );
+has name      => ( is => 'ro' );
+has type      => ( is => 'ro' );
+has docker_id => ( is => 'ro' );
+has status    => ( is => 'ro' );
+has image     => ( is => 'ro' );
+has env       => ( is => 'ro' );
 
 sub load {
-    my ( $class, $name, $type, $env_template, $docker_info ) = @_;
+    my ( $class, $name, $type, $env, $docker_info ) = @_;
 
     if ( !$docker_info ) {
         return;
@@ -40,24 +39,15 @@ sub load {
 
     $image = $docker_info->{'Config'}{'Image'};
 
-    # template env variables
-    # (only ip addr for now, maybe ports in the future)
-    my $ip_address = $docker_info->{NetworkSettings}{IPAddress};
-
-    my $env = $env_template;
-    $env =~ s/%IP/$ip_address/g;
-
-    my $uc_name = uc($name);
-    $env =~ s/^/POCKETPAAS_${uc_name}_/gms;
+   # TODO: parse out port mappings so that Hipache.pm can find the public port
 
     return $class->new(
-        {   name         => $name,
-            type         => $type,
-            image        => $image,
-            docker_id    => $docker_id,
-            status       => $status,
-            env_template => $env_template,
-            env          => $env,
+        {   name      => $name,
+            type      => $type,
+            image     => $image,
+            docker_id => $docker_id,
+            status    => $status,
+            env       => $env,
         }
     );
 }

@@ -74,6 +74,14 @@ sub docker_run {
         push @args, '-p', $_ for @{ $options->{ports} };
     }
 
+    if ( $options->{expose} ) {
+        push @args, '-expose', $_ for @{ $options->{expose} };
+    }
+
+    if ( $options->{environment} ) {
+        push @args, '-e', $_ for @{ $options->{environment} };
+    }
+
     if ( $options->{daemon} ) {
 
         my $output;

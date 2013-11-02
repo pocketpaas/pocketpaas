@@ -26,7 +26,8 @@ sub setup_pocketpaas {
     # make sure hipache is running
     $self->queue_task(
         App::PocketPaas::Task::ProvisionService->new(
-            $self, 'pps_hipache', 'hipache', { ports => ['80:80'] }
+            $self, 'pps_hipache',
+            'hipache', { ports => [ '80:80', '127.0.0.1::6379' ] }
         )
     );
     $self->finish_queue();
