@@ -74,7 +74,8 @@ sub create_service {
     DEBUG("PORTS: $ports_raw");
     my $container_ports = [ split( /\n/, $ports_raw ) ];
 
-    my @base_ports = qw(22);
+    # ssh port for connecting to service
+    my @base_ports = qw(127.0.0.1::22);
 
     if ( $options->{ports} ) {
         foreach my $port_spec ( @{ $options->{ports} } ) {
