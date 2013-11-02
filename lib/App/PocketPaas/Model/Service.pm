@@ -39,7 +39,7 @@ sub load {
 
     $image = $docker_info->{'Config'}{'Image'};
 
-   # TODO: parse out port mappings so that Hipache.pm can find the public port
+    # TODO: parse out port mappings so that Hipache.pm can find the public port
 
     return $class->new(
         {   name      => $name,

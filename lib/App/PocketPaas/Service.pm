@@ -61,11 +61,8 @@ sub create_service {
     my $service_repo = "$config->{svc_image_prefix}/$name";
 
     my $env;
-    run3 [
-        qw(svp setup -b), $service_clone_path,
-        qw(-i),           $service_repo_base,
-        qw(-t),           $service_repo
-        ],
+    run3 [ qw(svp setup -b), $service_clone_path, qw(-i), $service_repo_base,
+        qw(-t), $service_repo ],
         undef, \$env;
 
     DEBUG("ENV: $env");
@@ -81,8 +78,7 @@ sub create_service {
 
     if ( $options->{ports} ) {
         foreach my $port_spec ( @{ $options->{ports} } ) {
-            my ( $ip, $public, $private )
-                = $port_spec =~ m/(?:(\d+\.[\d.]+):)?(?:(\d*):)?(\d+)/;
+            my ( $ip, $public, $private ) = $port_spec =~ m/(?:(\d+\.[\d.]+):)?(?:(\d*):)?(\d+)/;
 
             $container_ports = [ grep { $_ != $private } @$container_ports ];
             push( @base_ports, $port_spec );
@@ -165,8 +161,7 @@ sub get_service {
 
     # TODO handle empty container info
 
-    return App::PocketPaas::Model::Service->load( $name, $type, $env,
-        $container_info );
+    return App::PocketPaas::Model::Service->load( $name, $type, $env, $container_info );
 }
 
 sub get_all_services {
@@ -194,8 +189,7 @@ sub get_all_services {
         my $container_info = docker_inspect( $config, $docker_id );
 
         push @$services,
-            App::PocketPaas::Model::Service->load( $name, $type, $env,
-            $container_info );
+            App::PocketPaas::Model::Service->load( $name, $type, $env, $container_info );
     }
 
     return $services;
