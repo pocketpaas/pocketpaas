@@ -11,6 +11,8 @@ has docker_id => ( is => 'ro' );
 has status    => ( is => 'ro' );
 has image     => ( is => 'ro' );
 has env       => ( is => 'ro' );
+has ports     => ( is => 'ro' );
+has link_name => ( is => 'ro' );
 
 sub load {
     my ( $class, $name, $type, $env, $docker_info ) = @_;
@@ -39,7 +41,8 @@ sub load {
 
     $image = $docker_info->{'Config'}{'Image'};
 
-    # TODO: parse out port mappings so that Hipache.pm can find the public port
+    my $ports = $docker_info->{'NetworkSettings'}{'Ports'};
+    $ports = { map { $_ => $ports->{$_}[0]{'HostPort'} } keys %$ports };
 
     return $class->new(
         {   name      => $name,
@@ -48,6 +51,8 @@ sub load {
             docker_id => $docker_id,
             status    => $status,
             env       => $env,
+            ports     => $ports,
+            link_name => $docker_info->{'Name'},
         }
     );
 }

@@ -132,12 +132,12 @@ sub build_app {
 }
 
 sub start_app {
-    my ( $config, $app_name, $tag, $service_env ) = @_;
+    my ( $config, $app_name, $tag, $service_links ) = @_;
 
     my $app_run_build_dir = tempdir();
     DEBUG("Run build dir: $app_run_build_dir");
 
-    prepare_run_build( $config, $app_run_build_dir, $app_name, $tag, $service_env );
+    prepare_run_build( $config, $app_run_build_dir, $app_name, $tag );
 
     if (!docker_build(
             $config, $app_run_build_dir, $config->{app_image_prefix} . "/$app_name:run-$tag"
@@ -151,8 +151,11 @@ sub start_app {
 
     # now start it up (-:
     INFO("Starting application");
-    my $docker_id = docker_run( $config, $config->{app_image_prefix} . "/$app_name:run-$tag",
-        { daemon => 1 } );
+    my $docker_id = docker_run(
+        $config,
+        $config->{app_image_prefix} . "/$app_name:run-$tag",
+        { daemon => 1, links => $service_links }
+    );
 
     if ( !$docker_id ) {
         return;
@@ -219,20 +222,12 @@ DOCKER
 }
 
 sub prepare_run_build {
-    my ( $config, $app_run_build_dir, $app_name, $tag, $service_env ) = @_;
-
-    if ($service_env) {
-
-        # TODO fix this to allow '=' in values
-        $service_env =~ s/^/ENV /gmsi;
-        $service_env =~ s/=/ /gmsi;
-    }
+    my ( $config, $app_run_build_dir, $app_name, $tag ) = @_;
 
     write_file( "$app_run_build_dir/Dockerfile", <<DOCKER2);
 from    $config->{app_image_prefix}/$app_name:build-$tag
 env     PORT 5000
 env     POCKETPAAS true
-$service_env
 expose  5000
 cmd     ["/start", "web"]
 DOCKER2

@@ -55,6 +55,9 @@ sub execute {
                 type      => $service->type,
                 docker_id => $service->docker_id,
                 status    => $service->status,
+                ports     => $service->ports,
+                env       => $service->env,
+                link_name => $service->link_name,
             }
         );
     }

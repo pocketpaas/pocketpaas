@@ -35,6 +35,7 @@ sub create_service {
         mkpath($svc_info_dir);
     }
 
+    # TODO: update the repo (git pull) if it already exists
     if ( !-e $service_clone_path ) {
         my $git_url = $SERVICE_TYPE_TO_GIT_URL{$type};
         DEBUG("cloning $git_url for service type $type");
@@ -86,7 +87,6 @@ sub create_service {
         }
     }
 
-    # TODO: use the -name option to name the service container appropriately
     # start the service
     my $docker_id = docker_run(
         $config,
@@ -94,7 +94,8 @@ sub create_service {
         {   daemon      => 1,
             expose      => $container_ports,
             ports       => \@base_ports,
-            environment => $environment
+            environment => $environment,
+            name        => "service_$name",
         }
     );
 

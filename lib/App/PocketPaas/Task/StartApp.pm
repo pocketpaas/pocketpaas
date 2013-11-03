@@ -92,7 +92,7 @@ sub perform {
         }
     }
 
-    my $service_env = '';
+    my $service_links;
 
     my $services_needed_provisioning = 0;
     if ($services) {
@@ -104,7 +104,7 @@ sub perform {
 
             my $service = get_service( $pps->config, $name );
             if ( $service && $service->status() eq 'running' ) {
-                $service_env .= $service->env();
+                push @$service_links, sprintf( '%s:%s', $service->link_name(), $service->name() );
             }
             else {
                 $services_needed_provisioning = 1;
@@ -117,7 +117,7 @@ sub perform {
         die "end_of_line\n";
     }
 
-    start_app( $pps->config, $app_name, $tag, $service_env );
+    start_app( $pps->config, $app_name, $tag, $service_links );
 
     # if app was previously running
     if ($app) {
