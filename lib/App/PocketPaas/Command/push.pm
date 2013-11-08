@@ -1,5 +1,5 @@
 package App::PocketPaas::Command::push;
-use App::PocketPaas -command;
+use base qw(App::PocketPaas::Command);
 
 # ABSTRACT: build the current application
 
@@ -17,7 +17,7 @@ use IPC::Run3;
 use Log::Log4perl qw(:easy);
 use File::Path qw(make_path);
 
-sub opt_spec {
+sub options {
     return (
         [ "name|n=s",    "application name, defaults to the directory name or read from pps.yml" ],
         [ "stage|s",     "run new code in a new container without replacing production" ],

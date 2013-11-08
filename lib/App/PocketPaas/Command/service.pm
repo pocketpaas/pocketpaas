@@ -1,5 +1,5 @@
 package App::PocketPaas::Command::service;
-use App::PocketPaas -command;
+use base qw(App::PocketPaas::Command);
 
 # ABSTRACT: manage pocketpaas services
 
@@ -16,7 +16,7 @@ use IPC::Run3;
 use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
 
-sub opt_spec {
+sub options {
     return ( [ "name|n=s", "service name" ], [ "type|t=s", "service type" ], );
 }
 

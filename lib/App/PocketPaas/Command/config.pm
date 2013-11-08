@@ -1,5 +1,5 @@
 package App::PocketPaas::Command::config;
-use App::PocketPaas -command;
+use base qw(App::PocketPaas::Command);
 
 # ABSTRACT: configure pocketpaas
 
@@ -10,7 +10,7 @@ use App::PocketPaas::Config qw(get_public_config get_config set_config unset_con
 
 use YAML qw(Dump);
 
-sub opt_spec {
+sub options {
     return ( [ "unset|u=s", "unset a config key" ], [ "set|s=s", "set a config key" ], );
 }
 

@@ -1,5 +1,5 @@
 package App::PocketPaas::Command::setup;
-use App::PocketPaas -command;
+use base qw(App::PocketPaas::Command);
 
 # ABSTRACT: setup pocketpaas
 
@@ -10,7 +10,7 @@ use App::PocketPaas::Core;
 
 use Log::Log4perl qw(:easy);
 
-sub opt_spec {
+sub options {
     return ();
 }
 

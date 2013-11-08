@@ -1,5 +1,5 @@
 package App::PocketPaas::Command::destroy;
-use App::PocketPaas -command;
+use base qw(App::PocketPaas::Command);
 
 # ABSTRACT: delete the current application
 
@@ -14,7 +14,7 @@ use App::PocketPaas::Util qw(load_app_config);
 use Cwd;
 use Log::Log4perl qw(:easy);
 
-sub opt_spec {
+sub options {
     return (
         [ "name|n=s", "application name, defaults to the directory name or read from pps.yml" ], );
 }

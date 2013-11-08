@@ -1,5 +1,5 @@
 package App::PocketPaas::Command::info;
-use App::PocketPaas -command;
+use base qw(App::PocketPaas::Command);
 
 # ABSTRACT: info about a single application
 
@@ -15,7 +15,7 @@ use Cwd;
 use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
 
-sub opt_spec {
+sub options {
     return (
         [ "name|n=s", "application name, defaults to the directory name or read from pps.yml" ], );
 }

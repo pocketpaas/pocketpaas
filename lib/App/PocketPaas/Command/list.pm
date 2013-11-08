@@ -1,5 +1,5 @@
 package App::PocketPaas::Command::list;
-use App::PocketPaas -command;
+use base qw(App::PocketPaas::Command);
 
 # ABSTRACT: list applications
 
@@ -12,7 +12,7 @@ use App::PocketPaas::App qw(load_app_names);
 use Log::Log4perl qw(:easy);
 use YAML qw(Dump);
 
-sub opt_spec {
+sub options {
     return ();
 }
 
