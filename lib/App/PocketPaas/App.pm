@@ -118,7 +118,7 @@ sub build_app {
 
         if ( docker_wait( $config, $build_container_id ) ) {
             docker_commit( $config, $build_container_id,
-                $config->{app_image_prefix} . "/$app_name", "build-$tag" );
+                $config->{app_image_prefix} . "/$app_name:build-$tag" );
         }
         else {
             # TODO: clean up images
