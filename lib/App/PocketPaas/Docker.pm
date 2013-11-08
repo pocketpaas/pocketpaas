@@ -16,6 +16,8 @@ use Sub::Exporter -setup => {
 
 Readonly my @DOCKER => qw(docker);
 
+my $logger = sub { DEBUG(@_) };
+
 LWP::Protocol::implementor( http => 'LWP::Protocol::http::SocketUnixAlt' );
 
 sub docker_build {
@@ -27,7 +29,7 @@ sub docker_build {
 
     my @build_app_cmd = ( @DOCKER, qw(build -t), $tag, qw(.) );
 
-    run3 \@build_app_cmd;
+    run3 \@build_app_cmd, \undef, $logger, $logger;
 
     my $rc = $? >> 8;
 
@@ -43,7 +45,7 @@ sub docker_build {
 sub docker_wait {
     my ( $config, $container ) = @_;
 
-    run3 [ @DOCKER, qw(wait), $container ], \undef, \undef, \undef;
+    run3 [ @DOCKER, qw(wait), $container ], \undef, $logger, $logger;
 
     my $rc = $? >> 8;
 
@@ -54,7 +56,7 @@ sub docker_commit {
     my $config = shift;
     my @args   = @_;
 
-    run3 [ @DOCKER, qw(commit), @args ];
+    run3 [ @DOCKER, qw(commit), @args ], \undef, $logger, $logger;
 }
 
 sub docker_run {
@@ -97,7 +99,7 @@ sub docker_run {
 
         chomp $output;
 
-        DEBUG("run output: $output");
+        DEBUG($output);
 
         # filter out warnings
         my @lines = grep { $_ !~ /WARNING/ } split( /\n/, $output );
@@ -112,16 +114,24 @@ sub docker_run {
         return 0;
     }
     else {
-        run3 [ @DOCKER, qw(run), $image, @command ];
+        run3 [ @DOCKER, qw(run), $image, @command ], \undef, $logger, $logger;
     }
 }
 
 sub docker_attach {
     my ( $config, $container ) = @_;
 
-    my @run_cmd = ( @DOCKER, qw(attach), $container );
+    my $ua = LWP::UserAgent->new;
+    $ua->add_handler(
+        response_data => sub {
+            my ( $response, $ua, $h, $data ) = @_;
+            INFO($data);
+            return 1;
+        }
+    );
 
-    run3 \@run_cmd;
+    my $response = $ua->post( 'http:var/run/docker.sock//v1.4'
+            . "/containers/$container/attach?stderr=1&stdout=1&stream=1" );
 }
 
 sub docker_stop {
@@ -129,7 +139,7 @@ sub docker_stop {
 
     my @run_cmd = ( @DOCKER, qw(stop), $container_id );
 
-    run3 \@run_cmd, \undef, \undef, \undef;
+    run3 \@run_cmd, \undef, $logger, $logger;
 
     if ($rc) {
         WARN("stop failed for container $container_id");
@@ -157,7 +167,7 @@ sub docker_rm {
 
     my @run_cmd = ( @DOCKER, qw(rm), $container_id );
 
-    run3 \@run_cmd;
+    run3 \@run_cmd, \undef, $logger, $logger;
 
     if ($rc) {
         WARN("rm failed for container $container_id");
@@ -171,7 +181,7 @@ sub docker_rmi {
 
     my @run_cmd = ( @DOCKER, qw(rmi), $image );
 
-    run3 \@run_cmd;
+    run3 \@run_cmd, \undef, $logger, $logger;
 
     if ($rc) {
         WARN("rmi failed for container $image");
