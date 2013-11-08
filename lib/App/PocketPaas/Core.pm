@@ -41,6 +41,18 @@ sub queue_task {
     push @{ $self->queue }, $task;
 }
 
+sub queue_task_unless_duplicate {
+    my ( $self, $task ) = @_;
+
+    my $task_type = ref($task);
+    if ( !grep { ref($_) eq $task_type } @{ $self->queue } ) {
+        push @{ $self->queue }, $task;
+    }
+    else {
+        WARN("skipping duplicate $task_type");
+    }
+}
+
 sub finish_queue {
     my ($self) = @_;
 

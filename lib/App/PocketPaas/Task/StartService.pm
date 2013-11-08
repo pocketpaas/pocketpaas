@@ -38,7 +38,11 @@ sub perform {
             # apps that are bound to it
             my $app_names = find_apps_using_service( $pps->config, $name );
             foreach my $app_name (@$app_names) {
-                $pps->queue_task(
+
+                # Instance where the startapp task is a duplicate:
+                # * if more than one service is being started for a particular app
+                # * if this service was started because the application is being started
+                $pps->queue_task_unless_duplicate(
                     App::PocketPaas::Task::StartApp->new(
                         $pps, $app_name, undef, undef, undef, { force => 1 }
                     )
