@@ -63,6 +63,8 @@ sub add_hipache_app {
     $redis->rpush( $hipache_key, $app_name );
     DEBUG( sprintf( "rpush $hipache_key 'http://%s:%d'", $app_ip_address, $app_port ) );
     $redis->rpush( $hipache_key, sprintf( 'http://%s:%d', $app_ip_address, $app_port ) );
+
+    INFO( sprintf( "Application available at http://%s.%s/", $app_name, $domain ) );
 }
 
 1;

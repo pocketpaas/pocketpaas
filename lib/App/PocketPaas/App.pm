@@ -83,7 +83,7 @@ sub build_app {
         )
         )
     {
-        INFO("Application built successfully");
+        DEBUG("Application base image built successfully");
     }
     else {
         docker_rmi( $config, $config->{app_image_prefix} . "/$app_name:temp-$tag" );
