@@ -1,6 +1,7 @@
 package App::PocketPaas::Core;
 
 use App::PocketPaas::Config qw(get_config);
+use App::PocketPaas::Hipache qw(wait_for_hipache);
 use App::PocketPaas::Task::ProvisionService;
 
 use Moo;
@@ -30,6 +31,8 @@ sub setup_pocketpaas {
         )
     );
     $self->finish_queue();
+
+    wait_for_hipache( $self->config );
 }
 
 sub queue_task {

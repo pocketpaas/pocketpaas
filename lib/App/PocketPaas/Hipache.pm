@@ -9,7 +9,28 @@ use App::PocketPaas::Service qw(get_service);
 use Log::Log4perl qw(:easy);
 use Redis;
 
-use Sub::Exporter -setup => { exports => [qw(add_hipache_app)] };
+use Sub::Exporter -setup => { exports => [qw(wait_for_hipache add_hipache_app)] };
+
+sub wait_for_hipache {
+    my ($config) = @_;
+
+    my $hipache_service = get_service( $config, 'pps_hipache' );
+    if ( !$hipache_service ) {
+        WARN("PocketPaas Hipache service not found!!");
+        return;
+    }
+
+    # get the hipache redis port from the hipache service
+    my $redis_port = $hipache_service->ports->{'6379/tcp'};
+
+    my $redis = Redis->new( server => "localhost:$redis_port" );
+
+    while ( !$redis->ping ) {
+        DEBUG("waiting for hipache on local port $redis_port...");
+        sleep 1;
+        $redis = Redis->new( server => "localhost:$redis_port" );
+    }
+}
 
 sub add_hipache_app {
     my ( $config, $app_name, $docker_id ) = @_;
