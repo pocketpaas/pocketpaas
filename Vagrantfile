@@ -13,10 +13,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # config.vm.box_url = "http://domain.com/path/to/above.box"
 
   # ports
-  (49000..49100).each do |port|
-    config.vm.network :forwarded_port, :host => port, :guest => port
-  end
-  config.vm.network :forwarded_port, :host => 8080, :guest => 80
+  config.vm.network :forwarded_port, :host => 8080, :guest => 80, auto_correct: true
 
   config.vm.provider :virtualbox do |vb|
     # Don't boot with headless mode
