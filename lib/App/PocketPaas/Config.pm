@@ -21,8 +21,9 @@ Readonly my $DEFAULT_BASE_DIR             => "$ENV{HOME}/.pocketpaas";
 Readonly my $DEFAULT_APP_IMAGE_PREFIX     => 'pocketapp';
 Readonly my $DEFAULT_BASE_IMAGE_PREFIX    => 'pocketbase';
 Readonly my $DEFAULT_SERVICE_IMAGE_PREFIX => 'pocketsvc';
+Readonly my $DEFAULT_SERVICE_GIT_PREFIX   => 'https://github.com/pocketpaas/';
 
-Readonly my @HIDDEN_KEYS => qw(base_dir);
+Readonly my @HIDDEN_KEYS => qw(base_dir svc_git_prefix);
 
 sub get_public_config {
     my $config = get_config();
@@ -46,6 +47,7 @@ sub get_config {
         app_image_prefix  => $note->{app_image_prefix}  || $DEFAULT_APP_IMAGE_PREFIX,
         base_image_prefix => $note->{base_image_prefix} || $DEFAULT_BASE_IMAGE_PREFIX,
         svc_image_prefix  => $note->{svc_image_prefix}  || $DEFAULT_SERVICE_IMAGE_PREFIX,
+        svc_git_prefix    => $note->{svc_git_prefix}    || $DEFAULT_SERVICE_GIT_PREFIX,
     };
 
     return $key ? $config->{$key} // '' : $config;

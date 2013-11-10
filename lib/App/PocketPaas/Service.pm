@@ -16,12 +16,11 @@ use Readonly;
 use Sub::Exporter -setup =>
     { exports => [qw(create_service stop_service start_service get_service get_all_services)] };
 
-# TODO: make the base of these URLs a configuration parameter so that we don't
-# have to keep temporarily setting them
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
-    mysql   => 'https://github.com/pocketpaas/servicepack_mysql.git',
-    redis   => 'https://github.com/pocketpaas/servicepack_redis.git',
-    hipache => 'https://github.com/pocketpaas/servicepack_hipache.git',
+    mongodb => 'servicepack_mongodb.git',
+    mysql   => 'servicepack_mysql.git',
+    redis   => 'servicepack_redis.git',
+    hipache => 'servicepack_hipache.git',
 );
 
 sub create_service {
@@ -37,7 +36,8 @@ sub create_service {
 
     # TODO: update the repo (git pull) if it already exists
     if ( !-e $service_clone_path ) {
-        my $git_url = $SERVICE_TYPE_TO_GIT_URL{$type};
+        my $git_repo = $SERVICE_TYPE_TO_GIT_URL{$type};
+        my $git_url  = $config->{svc_git_prefix} . $git_repo;
         DEBUG("cloning $git_url for service type $type");
         run3 [ qw(git clone --depth 1), $git_url, $service_clone_path ];
     }
