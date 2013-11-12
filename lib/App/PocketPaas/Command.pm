@@ -2,6 +2,9 @@ package App::PocketPaas::Command;
 
 use App::Cmd::Setup -command;
 
+use App::PocketPaas::Config qw(get_config);
+
+use File::Path qw(mkpath);
 use Log::Log4perl qw(:easy);
 
 sub opt_spec {
@@ -29,6 +32,11 @@ sub validate_args {
     }
     if ( $opt->{quiet} ) {
         $console_log_level = 'WARN';
+    }
+
+    my $config = get_config();
+    if ( !-e $config->{base_dir} ) {
+        mkpath( $config->{base_dir} );
     }
 
     Log::Log4perl->init( \ <<EOT);
