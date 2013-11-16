@@ -24,10 +24,15 @@ sub load_pps {
 sub setup_pocketpaas {
     my ($self) = @_;
 
+    my $hipache_listen_ip = $self->config->{hipache_listen_ip};
+
+    # TODO: if the hipache_listen_ip isn't set, use IO::Interface to figure out
+    # a likely candidate and use that instead
     # make sure hipache is running
     $self->queue_task(
         App::PocketPaas::Task::ProvisionService->new(
-            $self, 'pps_hipache', 'hipache', { ports => [ '80:80', '127.0.0.1::6379' ] }
+            $self, 'pps_hipache',
+            'hipache', { ports => [ "$hipache_listen_ip:80:80", '127.0.0.1::6379' ] }
         )
     );
     $self->finish_queue();
