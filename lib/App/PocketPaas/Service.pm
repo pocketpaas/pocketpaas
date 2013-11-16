@@ -3,18 +3,21 @@ package App::PocketPaas::Service;
 use strict;
 use warnings;
 
-use App::PocketPaas::Docker qw(docker_images docker_inspect docker_run docker_start docker_stop);
+use App::PocketPaas::Docker
+    qw(docker_images docker_inspect docker_run docker_start docker_stop docker_rm docker_rmi);
 use App::PocketPaas::Model::Service;
 use App::PocketPaas::Model::ServiceBase;
-use App::PocketPaas::Notes qw(add_note get_note query_notes);
+use App::PocketPaas::Notes qw(add_note get_note query_notes delete_note);
 
 use File::Path qw(mkpath);
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
 use Readonly;
 
-use Sub::Exporter -setup =>
-    { exports => [qw(create_service stop_service start_service get_service get_all_services)] };
+use Sub::Exporter -setup => {
+    exports => [
+        qw(create_service stop_service start_service destroy_service get_service get_all_services)]
+};
 
 Readonly my %SERVICE_TYPE_TO_GIT_URL => (
     mongodb => 'servicepack_mongodb.git',
@@ -143,6 +146,28 @@ sub start_service {
     }
     else {
         WARN("Service '$name' not found.");
+    }
+    return 0;
+}
+
+sub destroy_service {
+    my ( $config, $name ) = @_;
+
+    my $service = get_service( $config, $name );
+
+    if ($service) {
+        if ( $service->status ne 'stopped' ) {
+            docker_stop( $config, $service->docker_id );
+        }
+
+        # delete the service container
+        docker_rm( $config, $service->docker_id() );
+
+        # delete the service image
+        docker_rmi( $config, "$config->{svc_image_prefix}/$name" );
+
+        delete_note( $config, "service_$name" );
+        return 1;
     }
     return 0;
 }

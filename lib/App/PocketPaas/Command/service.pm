@@ -11,6 +11,7 @@ use App::PocketPaas::Service qw(get_service get_all_services stop_service start_
 use App::PocketPaas::Task::StopService;
 use App::PocketPaas::Task::StartService;
 use App::PocketPaas::Task::ProvisionService;
+use App::PocketPaas::Task::DestroyService;
 
 use IPC::Run3;
 use Log::Log4perl qw(:easy);
@@ -76,8 +77,10 @@ sub execute {
         $pps->queue_task( App::PocketPaas::Task::StartService->new( $pps, $name ) );
     }
     elsif ( $command eq 'destroy' ) {
+        my $name = _get_name_opt($opt);
+        my $service = _get_service( $pps->config, $name );
 
-        # TODO
+        $pps->queue_task( App::PocketPaas::Task::DestroyService->new( $pps, $name ) );
     }
     elsif ( $command eq 'client' ) {
 
