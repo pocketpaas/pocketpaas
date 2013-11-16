@@ -45,11 +45,15 @@ sub docker_build {
 sub docker_wait {
     my ( $config, $container ) = @_;
 
-    run3 [ @DOCKER, qw(wait), $container ], \undef, $logger, $logger;
+    my $result;
 
-    my $rc = $? >> 8;
+    run3 [ @DOCKER, qw(wait), $container ], \undef, \$result, \$result;
 
-    return !$rc;
+    chomp($result);
+
+    INFO("\$result: $result");
+
+    return !$result;
 }
 
 sub docker_commit {

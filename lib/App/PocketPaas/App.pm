@@ -123,6 +123,7 @@ sub build_app {
         else {
             # TODO: clean up images
             FATAL("Application build failed");
+            return;
         }
     }
     else {
