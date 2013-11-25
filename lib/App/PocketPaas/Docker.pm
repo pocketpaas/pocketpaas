@@ -108,7 +108,7 @@ sub docker_run {
         # filter out warnings
         my @lines = grep { $_ !~ /WARNING/ } split( /\n/, $output );
 
-        if ( scalar(@lines) == 1 && length( $lines[0] ) == 12 ) {
+        if ( scalar(@lines) == 1 && ( length( $lines[0] ) == 12 || length( $lines[0] ) == 64 ) ) {
             return $lines[0];
         }
         else {
