@@ -6,27 +6,27 @@
 * documentation for pocketpaas
   * reference
   * quick start
-* <strike>documentation for servicepack</strike>
-  * <strike>reference</strike>
-  * <strike>quick start</strike>
-* <strike>servicepack</strike>
-  * <strike>move ssh key from build to setup</strike>
-  * <strike>add version</strike>
-  * <strike>remove backup and extra as we don't need them yet</strike>
-* <strike>implement consistent config handling</strike>
-* <strike>push routing config into hipache</strike>
-* <strike>hipache container set up</strike>
-* <strike>app config yaml file</strike>
-* <strike>stop application</strike>
-* <strike>start application</strike>
-* <strike>delete application</strike>
-* <strike>service provisioning with servicepack</strike>
+* DONE: documentation for servicepack
+  * DONE: reference
+  * DONE: quick start
+* DONE: servicepack
+  * DONE: move ssh key from build to setup
+  * DONE: add version
+  * DONE: remove backup and extra as we don't need them yet
+* DONE: implement consistent config handling
+* DONE: push routing config into hipache
+* DONE: hipache container set up
+* DONE: app config yaml file
+* DONE: stop application
+* DONE: start application
+* DONE: delete application
+* DONE: service provisioning with servicepack
 
 ## Future
 
 * packaging for both
 * allow specifying ssl cert for https hipache, and autogenerate one if none provided
-* 2 or 3 more servicepacks, <strike>mongo</strike>, <strike>redis</strike>, rabbitmq, etc.
+* 2 or 3 more servicepacks, rabbitmq, etcd, etc.
 * Run applications as users, not root, inside containers
 * Run sshd in application containers to allow logging in
 * Figure out a convention for handling logs
