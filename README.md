@@ -1,3 +1,9 @@
+# Warning
+
+This project isn't quite ready for mass consumption.  There will be a quickstart guide soon to help with setup.
+
+Do feel free to look around in the meantime, if you'd like.
+
 # Overview
 
 PocketPaaS - the PaaS that's so small, it could fit in your pocket.
