@@ -71,6 +71,8 @@ This project stands on the shoulders of many giants.  It would not be possible w
 
 And many others.  Thank you for contributing your work so that I could contribute mine.
 
+The logo on github is from [Erin Standley](http://thenounproject.com/noun/pocket/#icon-No17671), from the excellent [Noun Project](http://thenounproject.com/).
+
 # License
 
 Copyright 2013 Nate Jones
