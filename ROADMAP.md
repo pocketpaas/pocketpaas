@@ -3,6 +3,7 @@
 * clean up old application images/containers
 * add build or pull configuration
 * set up buildstep as part of setup
+* add dev setup instructions (vagrant box, etc.)
 * documentation for pocketpaas
   * reference
   * quick start
