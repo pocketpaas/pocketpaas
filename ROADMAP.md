@@ -1,12 +1,17 @@
 ## MVP
 
 * clean up old application images/containers
-* documentation for both pocketpaas and servicepack
+* add build or pull configuration
+* set up buildstep as part of setup
+* documentation for pocketpaas
   * reference
   * quick start
-* servicepack
+* <strike>documentation for servicepack</strike>
+  * <strike>reference</strike>
+  * <strike>quick start</strike>
+* <strike>servicepack</strike>
   * <strike>move ssh key from build to setup</strike>
-  * add version
+  * <strike>add version</strike>
   * <strike>remove backup and extra as we don't need them yet</strike>
 * <strike>implement consistent config handling</strike>
 * <strike>push routing config into hipache</strike>
