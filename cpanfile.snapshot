@@ -654,7 +654,7 @@ DISTRIBUTIONS
       DateTime::Locale::zu_ZA undef
     requirements:
       List::MoreUtils 0
-      Module::Build 0.36
+      Module::Build 0
       Params::Validate 0.91
       perl 5.006
   DateTime-TimeZone-1.60
