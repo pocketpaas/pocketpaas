@@ -119,6 +119,12 @@ sub build_app {
         if ( docker_wait( $config, $build_container_id ) ) {
             docker_commit( $config, $build_container_id,
                 $config->{app_image_prefix} . "/$app_name:build-$tag" );
+
+            DEBUG("removing build container");
+            docker_rm( $config, $build_container_id );
+
+            DEBUG("removing temp image");
+            docker_rmi( $config, $config->{app_image_prefix} . "/$app_name:temp-$tag" );
         }
         else {
             # TODO: clean up images
@@ -147,8 +153,6 @@ sub start_app {
     {
         return;
     }
-
-    docker_rmi( $config, $config->{app_image_prefix} . "/$app_name:temp-$tag" );
 
     # now start it up (-:
     INFO("Starting application");

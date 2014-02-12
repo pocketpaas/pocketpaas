@@ -56,11 +56,14 @@ sub load {
 
     my $potential_tags = {};
     foreach my $docker_image (@$docker_images) {
-        if ( defined( $docker_image->{Repository} )
-            && $docker_image->{Repository} eq "$config->{app_image_prefix}/$name" )
-        {
-            my ( $type, $tag ) = $docker_image->{Tag} =~ m{^(build|run|temp)-([\d-]+)$};
-            $potential_tags->{$tag}->{$type} = 1;
+        if ( my $repo_tags = $docker_image->{RepoTags} ) {
+            foreach my $repo_tag (@$repo_tags) {
+                my ( $type, $tag )
+                    = $repo_tag =~ m{^$config->{app_image_prefix}/$name:(build|run|temp)-([\d-]+)$};
+                if ( $type && $tag ) {
+                    $potential_tags->{$tag}->{$type} = 1;
+                }
+            }
         }
     }
     foreach my $potential_tag ( keys %$potential_tags ) {

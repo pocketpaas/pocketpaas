@@ -216,7 +216,7 @@ sub _get {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
 
-    my $response = $ua->get( 'http:var/run/docker.sock//v1.4' . $uri );
+    my $response = $ua->get( 'http:var/run/docker.sock//v1.9' . $uri );
 
     if ( $response->is_success ) {
         return decode_json( $response->decoded_content );
