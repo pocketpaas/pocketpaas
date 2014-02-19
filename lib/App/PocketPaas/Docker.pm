@@ -27,7 +27,7 @@ sub docker_build {
 
     chdir $directory;
 
-    my @build_app_cmd = ( @DOCKER, qw(build -t), $tag, qw(.) );
+    my @build_app_cmd = ( @DOCKER, qw(build --rm -t), $tag, qw(.) );
 
     run3 \@build_app_cmd, \undef, $logger, $logger;
 
