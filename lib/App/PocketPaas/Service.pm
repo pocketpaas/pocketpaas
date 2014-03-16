@@ -91,6 +91,7 @@ sub create_service {
     }
 
     # start the service
+    # TODO: Add -t to this
     my $docker_id = docker_run(
         $config,
         $service_repo,
