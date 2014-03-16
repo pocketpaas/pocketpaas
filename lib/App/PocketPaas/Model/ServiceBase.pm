@@ -16,11 +16,10 @@ sub load {
     my $tags = [];
 
     foreach my $docker_image (@$docker_images) {
-
-        if ( defined( $docker_image->{Repository} )
-            && $docker_image->{Repository} eq "$config->{base_image_prefix}/$type" )
-        {
-            push @$tags, $docker_image->{Tag};
+        foreach my $tag ( @{ $docker_image->{RepoTags} } ) {
+            if ( $tag =~ m{^$config->{base_image_prefix}/$type:(.+)$} ) {
+                push @$tags, $1;
+            }
         }
     }
 

@@ -81,11 +81,11 @@ sub docker_run {
     }
 
     if ( $options->{links} ) {
-        push @args, '-link', $_ for @{ $options->{links} };
+        push @args, '--link', $_ for @{ $options->{links} };
     }
 
     if ( $options->{expose} ) {
-        push @args, '-expose', $_ for @{ $options->{expose} };
+        push @args, '--expose', $_ for @{ $options->{expose} };
     }
 
     if ( $options->{environment} ) {
@@ -93,7 +93,7 @@ sub docker_run {
     }
 
     if ( $options->{name} ) {
-        push @args, '-name', $options->{name};
+        push @args, '--name', $options->{name};
     }
 
     if ( $options->{daemon} ) {
@@ -134,7 +134,7 @@ sub docker_attach {
         }
     );
 
-    my $response = $ua->post( 'http:var/run/docker.sock//v1.4'
+    my $response = $ua->post( 'http:var/run/docker.sock//v1.10'
             . "/containers/$container/attach?stderr=1&stdout=1&stream=1" );
 }
 
@@ -216,7 +216,7 @@ sub _get {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
 
-    my $response = $ua->get( 'http:var/run/docker.sock//v1.9' . $uri );
+    my $response = $ua->get( 'http:var/run/docker.sock//v1.10' . $uri );
 
     if ( $response->is_success ) {
         return decode_json( $response->decoded_content );
